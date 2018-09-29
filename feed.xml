@@ -4,10 +4,10 @@
     <title>It's a data thing</title>
     <description>This blog is a collection of projects that I worked, overing all sorts of topic including data science, physics or just simple handcrafting.
 </description>
-    <link>http://localhost:4000/</link>
-    <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Sat, 29 Sep 2018 14:06:37 -0400</pubDate>
-    <lastBuildDate>Sat, 29 Sep 2018 14:06:37 -0400</lastBuildDate>
+    <link>http://sebmerkt.github.io/</link>
+    <atom:link href="http://sebmerkt.github.io/feed.xml" rel="self" type="application/rss+xml" />
+    <pubDate>Sat, 29 Sep 2018 14:11:32 -0400</pubDate>
+    <lastBuildDate>Sat, 29 Sep 2018 14:11:32 -0400</lastBuildDate>
     <generator>Jekyll v3.8.3</generator>
     
       <item>
@@ -220,8 +220,8 @@ Mean wages for Data Analysts:    77357.74&lt;/p&gt;
 &lt;p&gt;That’s it! from the map we can see that there are a number of companies that support a large number of visas, like Google, Amazon and the like. Of course this was to be expexted. But there are also a large number of companies that only support one or a few visas. This is certainly some useful information if you’re palnning to look for a job in data science.&lt;/p&gt;
 </description>
         <pubDate>Mon, 24 Sep 2018 00:00:00 -0400</pubDate>
-        <link>http://localhost:4000/2018/09/24/H1-B_blog.html</link>
-        <guid isPermaLink="true">http://localhost:4000/2018/09/24/H1-B_blog.html</guid>
+        <link>http://sebmerkt.github.io/2018/09/24/H1-B_blog.html</link>
+        <guid isPermaLink="true">http://sebmerkt.github.io/2018/09/24/H1-B_blog.html</guid>
         
         
       </item>
@@ -238,8 +238,8 @@ Curabitur orci turpis, egestas placerat velit eget, dictum pellentesque ipsum. S
 &lt;p&gt;Sed lobortis urna ut mi volutpat, sit amet euismod sapien tincidunt. Nulla facilisi. Pellentesque quis tempus neque. Mauris dictum ac sapien nec congue. In hac habitasse platea dictumst. Duis id pellentesque nisl. Morbi eget massa magna.&lt;/p&gt;
 </description>
         <pubDate>Tue, 17 Feb 2015 00:00:00 -0500</pubDate>
-        <link>http://localhost:4000/2015/02/17/Curabitur.html</link>
-        <guid isPermaLink="true">http://localhost:4000/2015/02/17/Curabitur.html</guid>
+        <link>http://sebmerkt.github.io/2015/02/17/Curabitur.html</link>
+        <guid isPermaLink="true">http://sebmerkt.github.io/2015/02/17/Curabitur.html</guid>
         
         
       </item>
@@ -254,8 +254,8 @@ Suspendisse pellentesque mollis turpis, vitae ullamcorper arcu sagittis in. Pell
 &lt;p&gt;Sed consequat mi id malesuada efficitur. Vestibulum efficitur tortor ut dictum porta. Morbi dapibus viverra risus, et laoreet lorem commodo et. Donec hendrerit posuere magna a efficitur. Nullam euismod eget nulla eget iaculis. Donec porttitor faucibus porta. Morbi et risus dolor. Mauris venenatis sem id neque hendrerit ultrices.&lt;/p&gt;
 </description>
         <pubDate>Fri, 06 Feb 2015 09:37:44 -0500</pubDate>
-        <link>http://localhost:4000/update/2015/02/06/welcome-to-jekyll.html</link>
-        <guid isPermaLink="true">http://localhost:4000/update/2015/02/06/welcome-to-jekyll.html</guid>
+        <link>http://sebmerkt.github.io/update/2015/02/06/welcome-to-jekyll.html</link>
+        <guid isPermaLink="true">http://sebmerkt.github.io/update/2015/02/06/welcome-to-jekyll.html</guid>
         
         
         <category>update</category>
@@ -276,8 +276,8 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi cursus fringilla 
 &lt;p&gt;Sed lobortis urna ut mi volutpat, sit amet euismod sapien tincidunt. Nulla facilisi. Pellentesque quis tempus neque. Mauris dictum ac sapien nec congue. In hac habitasse platea dictumst. Duis id pellentesque nisl. Morbi eget massa magna.&lt;/p&gt;
 </description>
         <pubDate>Fri, 30 Jan 2015 00:00:00 -0500</pubDate>
-        <link>http://localhost:4000/2015/01/30/Lorem.html</link>
-        <guid isPermaLink="true">http://localhost:4000/2015/01/30/Lorem.html</guid>
+        <link>http://sebmerkt.github.io/2015/01/30/Lorem.html</link>
+        <guid isPermaLink="true">http://sebmerkt.github.io/2015/01/30/Lorem.html</guid>
         
         
       </item>
