@@ -9,18 +9,7 @@
 <head>
     <!-- Google Analytics -->
     
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=UA-125852315-1"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'UA-125852315-1');
-</script>
-
-    
-    <title>Welcome to Jekyll!</title>
+    <title>How to find employers that sponsor H1-B visas</title>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <meta name="description" content="" />
     <meta name="keywords" content="" />
@@ -78,21 +67,22 @@
         <div class="wrapper style1">
     <article class="container">
         <header class="major">
-            <h2 class="post-title">Welcome to Jekyll!</h2>
+            <h2 class="post-title">How to find employers that sponsor H1-B visas</h2>
                 <p class="post-meta">Sep 24, 2018</p>
         </header>
 
         <section class="post-content">
-            <p><img src="/images/matrix.jpg" class="fit image" />
-I got this idea from another <a href="https://byrony.github.io/how-to-use-data-science-to-find-a-data-science-job-step-1-find-h1b-sponsors.html">blog by Xiang Cao.</a> His idea is to use data analysis to find a job in data analysis. The question is where you can find a company that sponsors H1-B visas. In his blog post he uses R to analyses the data. In this article we will use python + pandas to go through a simmilar analysis with the more recent <a href="https://www.foreignlaborcert.doleta.gov/performancedata.cfm#dis">H1-B disclosure data</a> from the federal fiscal year 2018.</p>
+            <p><a class="image seventyfive"><img src="/images/matrix.jpg" class="fit image" /></a>
+I got this idea from another <a href="https://byrony.github.io/how-to-use-data-science-to-find-a-data-science-job-step-1-find-h1b-sponsors.html">blog by Xiang Cao.</a> The idea is to use the power of data analysis to find a job in data science. The question is where you can find a company that sponsors H1-B visas. Xiang Cao uses R to analyses the data. In this article I will use python + pandas to go through a similar analysis with the more recent <a href="https://www.foreignlaborcert.doleta.gov/performancedata.cfm#dis">H1-B disclosure data</a> from the federal fiscal year 2018. For geovisualization of the data I will show two examples using Plotly. This will allow us to see the distribution of employers that sponsor H1-B visas on a US map.</p>
+
+<p>Here I will not go through each step of exploring the data, but rather focus on the important steps that are required to get the results and plots we would like in th end.</p>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="n">pd</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span>
-<span class="kn">import</span> <span class="nn">math</span>
 </code></pre></div></div>
 
-<p>First we import the data in form of an Excel spreadsheet. We can take a look at what is kind of data we are dealing with. For that we can display the keys of our dataframe. We are not interested in all the availlable attributes, so let save the relevant ones in a new dataframe. Specifically we are interested in the job title, employer name and address and the wage rate. We are also interested in whether the visa was issued as a new employment and whether it is a full time possition.</p>
+<p>First we import the data that comes in form of an Excel spreadsheet. We are not interested in all the available attributes, so let save the relevant ones in a new DataFrame. You can have a look at all the available attributes by typing <code class="highlighter-rouge">h1b.keys()</code>. A description of the different attributes can also be found on the homepage. Here, we are specifically interested in the job title, employer name and address and the wage rate. We are also interested in whether the visa was issued as a new employment and whether it is a full time position.</p>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">h1b</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_excel</span><span class="p">(</span><span class="s">"H-1B_Disclosure_Data_FY2018-Q3.xlsx"</span><span class="p">)</span>
 <span class="n">h1brel</span><span class="o">=</span><span class="n">h1b</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,[</span><span class="s">'JOB_TITLE'</span><span class="p">,</span>
@@ -101,37 +91,36 @@ I got this idea from another <a href="https://byrony.github.io/how-to-use-data-s
                   <span class="s">'WAGE_RATE_OF_PAY_FROM'</span><span class="p">,</span><span class="s">'WAGE_UNIT_OF_PAY'</span><span class="p">]]</span>
 </code></pre></div></div>
 
-<p>To clean up the data we need to remove all the NaN values. We can print the number of NaN values per column and the respective data type. Here we choose to replace the string type NaN objects with an ampty string and both ‘NEW_EMPLOYMENT’ and ‘WAGE_RATE_OF_PAY_FROM’ with ‘-1’.</p>
+<p>To clean up the data we need to remove all the NaN values. We can print the number of NaN values per column and the respective data type. Here we choose to replace the string type NaN objects with an empty string and both ‘NEW_EMPLOYMENT’ and ‘WAGE_RATE_OF_PAY_FROM’ with ‘-1’.</p>
 
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">print</span> <span class="s">"Number of NaN per column:</span><span class="se">\n</span><span class="s">"</span>
-<span class="k">print</span> <span class="n">h1brel</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="nb">sum</span><span class="p">()</span>
-<span class="k">print</span> <span class="s">"</span><span class="se">\n</span><span class="s">Data type of each column:</span><span class="se">\n</span><span class="s">"</span>
-<span class="k">print</span> <span class="n">h1brel</span><span class="o">.</span><span class="n">dtypes</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">print</span><span class="p">(</span><span class="s">"Number of NaN per column:</span><span class="se">\n</span><span class="s">"</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="n">h1brel</span><span class="o">.</span><span class="n">isna</span><span class="p">()</span><span class="o">.</span><span class="nb">sum</span><span class="p">())</span>
 <span class="n">h1brel</span><span class="p">[</span><span class="s">'JOB_TITLE'</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s">''</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="n">h1brel</span><span class="p">[</span><span class="s">'EMPLOYER_NAME'</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s">''</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="n">h1brel</span><span class="p">[</span><span class="s">'EMPLOYER_ADDRESS'</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s">''</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">h1brel</span><span class="p">[</span><span class="s">'EMPLOYER_CITY'</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s">''</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="n">h1brel</span><span class="p">[</span><span class="s">'EMPLOYER_STATE'</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s">''</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="n">h1brel</span><span class="p">[</span><span class="s">'EMPLOYER_POSTAL_CODE'</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s">''</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="n">h1brel</span><span class="p">[</span><span class="s">'NEW_EMPLOYMENT'</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="n">h1brel</span><span class="p">[</span><span class="s">'WAGE_RATE_OF_PAY_FROM'</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 <span class="n">h1brel</span><span class="p">[</span><span class="s">'WAGE_UNIT_OF_PAY'</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="s">''</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 </code></pre></div></div>
-<blockquote>
-  <p>Number of NaN per column:<br />
-<br />
-JOB_TITLE      2<br />
-EMPLOYER_NAME          16<br />
-EMPLOYER_ADDRESS       7<br />
-EMPLOYER_CITY          7<br />
-EMPLOYER_STATE         33<br />
-EMPLOYER_POSTAL_CODE   15<br />
-NEW_EMPLOYMENT         0<br />
-WAGE_RATE_OF_PAY_FROM  0<br />
-WAGE_UNIT_OF_PAY       8<br />
-dtype: int64</p>
-</blockquote>
 
-<p>We need to be more precise in defining what kind of jobs we are looking for. Just out of curiosity we will focus on a few examples, namely data scientist, data analyst and machine learning jobs. Further, we want to exclude any academic positions.</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Number of NaN per column:
+
+JOB_TITLE                 2
+EMPLOYER_NAME            16
+EMPLOYER_ADDRESS          7
+EMPLOYER_CITY             7
+EMPLOYER_STATE           33
+EMPLOYER_POSTAL_CODE     15
+NEW_EMPLOYMENT            0
+WAGE_RATE_OF_PAY_FROM     0
+WAGE_UNIT_OF_PAY          8
+dtype: int64
+</code></pre></div></div>
+
+<p>Next, we need to be more precise in defining what kind of jobs we are looking for. To keep it simple we will focus on a few examples, namely data science, data analysis and machine learning jobs. We also want to exclude any academic positions and restrict our analysis on new employment positions.</p>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">jobs</span><span class="o">=</span><span class="n">h1brel</span><span class="p">[</span><span class="n">h1brel</span><span class="p">[</span><span class="s">'JOB_TITLE'</span><span class="p">]</span><span class="o">.</span><span class="nb">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s">"DATA SCIENTIST|DATA SCIENCE|DATA ANALYST|DATA ANALYTICS|MACHINE LEARNING"</span><span class="p">)]</span>
 <span class="n">jobs</span><span class="o">=</span><span class="n">jobs</span><span class="p">[</span><span class="o">~</span><span class="n">jobs</span><span class="p">[</span><span class="s">'JOB_TITLE'</span><span class="p">]</span><span class="o">.</span><span class="nb">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s">"LECTURER|PROFESSOR|DOCTORAL"</span><span class="p">)]</span>
@@ -139,18 +128,12 @@ dtype: int64</p>
 <span class="n">jobs</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
 </code></pre></div></div>
 
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">jobs</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s">'jobs.csv'</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s">'</span><span class="se">\t</span><span class="s">'</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">'utf-8'</span><span class="p">)</span>
-</code></pre></div></div>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">jobs</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s">'jobs.csv'</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s">'</span><span class="se">\t</span><span class="s">'</span><span class="p">)</span>
-</code></pre></div></div>
-
-<p>With the data organized we can now turn our focus to the discription of that data. We can caculate how many sponsored H1-B visas there are per company. As you can see in the graph below, most companies only support a few H1-B visas. Even more, about 80% of the companies only support one H1-B visa.</p>
+<p>With the data organized we can now turn our focus to the description of that data. For example, we can calculate how many sponsored H1-B visas there are per company. As you can see in the graph below, most companies only support a few H1-B visas. Even more, about 80% of the companies only support one H1-B visa.</p>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">matplotlib.patches</span> <span class="k">as</span> <span class="n">mpatches</span>
 <span class="n">h1bperemployer</span><span class="o">=</span><span class="n">jobs</span><span class="p">[</span><span class="s">'EMPLOYER_NAME'</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span>
-<span class="k">print</span> <span class="s">"There are "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">h1bperemployer</span><span class="p">))</span> <span class="o">+</span> <span class="s">" employers in total."</span>
-<span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">h1bperemployer</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span><span class="n">color</span><span class="o">=</span><span class="s">'purple'</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"There are "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">h1bperemployer</span><span class="p">))</span> <span class="o">+</span> <span class="s">" employers in total."</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">h1bperemployer</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">25</span><span class="p">),</span><span class="n">color</span><span class="o">=</span><span class="s">'purple'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">title</span><span class="p">(</span><span class="s">"H1-B visas per employer"</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">25</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'# of visas per employer'</span><span class="p">)</span>
@@ -158,13 +141,12 @@ dtype: int64</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </code></pre></div></div>
 
-<blockquote>
-  <p>There are 2261 employers in total.</p>
-</blockquote>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>There are 2261 employers in total.
+</code></pre></div></div>
 
-<p><img src="/images/H1-B_blog_11_1.png" alt="png" /></p>
+<p><img src="/images/h1b_numberofvisas.png" alt="png" /></p>
 
-<p>The H1-B disclosure data also states the wages for the individual positions. Let’s have a look at what this means for data scientists and data analysts, respectively. We only look at the yearly wages here, so we need to filter by WAGE_UNIT_OF_PAY. The average yearly wage of a data scientist is around <span>$</span>100,000, for the data analyst it is a bit less at around <span>$</span>77,000.</p>
+<p>The H1-B disclosure data also states the wages for the individual positions. Let’s have a look at what this means for data scientists and data analysts, respectively. We only look at the yearly wages here, so we need to filter by <code class="highlighter-rouge">WAGE_UNIT_OF_PAY</code>. The average yearly wage of a data scientist is around <span>$</span>100,000, for the data analyst it is a bit less at around <span>$</span>77,000.</p>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">datascientists</span> <span class="o">=</span> <span class="n">jobs</span><span class="p">[</span><span class="n">jobs</span><span class="p">[</span><span class="s">'JOB_TITLE'</span><span class="p">]</span><span class="o">.</span><span class="nb">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s">"DATA SCIENTIST|DATA SCIENCE"</span><span class="p">)]</span>
 <span class="n">datascientistwages</span><span class="o">=</span><span class="n">datascientists</span><span class="p">[</span><span class="n">datascientists</span><span class="p">[</span><span class="s">'WAGE_UNIT_OF_PAY'</span><span class="p">]</span><span class="o">.</span><span class="nb">str</span><span class="o">.</span><span class="n">contains</span><span class="p">(</span><span class="s">"Year"</span><span class="p">)]</span>
@@ -181,18 +163,17 @@ dtype: int64</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'Wages in USD'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">'# of visas'</span><span class="p">)</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
-<span class="k">print</span> <span class="s">"Mean wages for Data Scientists: "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">datascientistwages</span><span class="p">[</span><span class="s">'WAGE_RATE_OF_PAY_FROM'</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span><span class="n">ndigits</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
-<span class="k">print</span> <span class="s">"Mean wages for Data Analysts:    "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">analystwages</span><span class="p">[</span><span class="s">'WAGE_RATE_OF_PAY_FROM'</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span><span class="n">ndigits</span><span class="o">=</span><span class="mi">2</span><span class="p">))</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"Mean wages for Data Scientists: $"</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">datascientistwages</span><span class="p">[</span><span class="s">'WAGE_RATE_OF_PAY_FROM'</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span><span class="n">ndigits</span><span class="o">=</span><span class="mi">2</span><span class="p">)))</span>
+<span class="k">print</span><span class="p">(</span><span class="s">"Mean wages for Data Analysts:   $"</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">round</span><span class="p">(</span><span class="n">analystwages</span><span class="p">[</span><span class="s">'WAGE_RATE_OF_PAY_FROM'</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">(),</span><span class="n">ndigits</span><span class="o">=</span><span class="mi">2</span><span class="p">)))</span>
 </code></pre></div></div>
 
-<p><img src="/images/H1-B_blog_13_0.png" alt="png" /></p>
+<p><img src="/images/h1b_wages.png" alt="png" /></p>
 
-<blockquote>
-  <p>Mean wages for Data Scientists: 100761.28<br />
-Mean wages for Data Analysts:    77357.74</p>
-</blockquote>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Mean wages for Data Scientists: $100761.28
+Mean wages for Data Analysts:   $77357.74
+</code></pre></div></div>
 
-<p>Finally, we would also like to know where the companies that sponsor H1-B visas are located. For that we use the addresses provided and transform those into geolocations. For each employer we count the number of H1-B visas issued to get a feeling of where the most employers are located.</p>
+<p>Finally, we would also like to know where the companies that sponsor H1-B visas are located. For that we use the addresses provided and transform those into geolocations, that means geographic coordinates given by latitude and longitude. For each employer we count the number of H1-B visas issued to get a feeling of where the most employers are located.</p>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">jobs_unique</span><span class="o">=</span><span class="n">jobs</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="s">'EMPLOYER_NAME'</span><span class="p">,</span> <span class="n">keep</span><span class="o">=</span><span class="s">'first'</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
 <span class="n">employers_unique</span><span class="o">=</span><span class="n">jobs</span><span class="p">[</span><span class="s">'EMPLOYER_NAME'</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">(</span><span class="n">sort</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
@@ -200,12 +181,6 @@ Mean wages for Data Analysts:    77357.74</p>
 <span class="k">for</span> <span class="n">idx</span><span class="p">,</span><span class="n">js</span> <span class="ow">in</span> <span class="n">jobs_unique</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
     <span class="n">jobs_unique</span><span class="p">[</span><span class="s">'COUNT'</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">=</span><span class="n">employers_unique</span><span class="p">[</span><span class="n">js</span><span class="p">[</span><span class="s">'EMPLOYER_NAME'</span><span class="p">]]</span>
 <span class="n">jobs_unique</span><span class="p">[</span><span class="s">'ADDRESS'</span><span class="p">]</span><span class="o">=</span><span class="n">jobs_unique</span><span class="p">[</span><span class="s">'EMPLOYER_ADDRESS'</span><span class="p">]</span><span class="o">+</span><span class="s">", "</span><span class="o">+</span><span class="n">jobs_unique</span><span class="p">[</span><span class="s">'EMPLOYER_CITY'</span><span class="p">]</span><span class="o">+</span><span class="s">', '</span><span class="o">+</span><span class="n">jobs_unique</span><span class="p">[</span><span class="s">'EMPLOYER_STATE'</span><span class="p">]</span><span class="o">+</span><span class="s">' '</span><span class="o">+</span><span class="n">jobs_unique</span><span class="p">[</span><span class="s">'EMPLOYER_POSTAL_CODE'</span><span class="p">]</span>
-</code></pre></div></div>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">jobs_unique</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s">'jobs_unique.csv'</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s">'</span><span class="se">\t</span><span class="s">'</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">'utf-8'</span><span class="p">)</span>
-</code></pre></div></div>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">jobs_unique</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s">"jobs_unique.csv"</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s">'</span><span class="se">\t</span><span class="s">'</span><span class="p">)</span>
 </code></pre></div></div>
 
 <p>Using the OpenStreetMap geocoder we can get the coordinates of each address. This will then allow us to plot the locations on a map.</p>
@@ -223,23 +198,18 @@ Mean wages for Data Analysts:    77357.74</p>
             <span class="n">geox</span><span class="o">=</span><span class="n">geoc</span><span class="o">.</span><span class="n">osm</span><span class="p">[</span><span class="s">'x'</span><span class="p">]</span>
             <span class="n">geoy</span><span class="o">=</span><span class="n">geoc</span><span class="o">.</span><span class="n">osm</span><span class="p">[</span><span class="s">'y'</span><span class="p">]</span>
             <span class="n">geolocations</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">ad</span><span class="p">[</span><span class="s">'EMPLOYER_NAME'</span><span class="p">],</span><span class="n">ad</span><span class="p">[</span><span class="s">'ADDRESS'</span><span class="p">],</span><span class="n">geox</span><span class="p">,</span><span class="n">geoy</span><span class="p">,</span><span class="n">ad</span><span class="p">[</span><span class="s">'COUNT'</span><span class="p">]])</span>
-        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+        <span class="n">time</span><span class="o">.</span><span class="n">sleep</span><span class="p">(</span><span class="mi">5</span><span class="p">)</span>
+
+<span class="n">geodf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">geolocations</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s">'EMPLOYER_NAME'</span><span class="p">,</span><span class="s">'ADDRESS'</span><span class="p">,</span><span class="s">'lon'</span><span class="p">,</span><span class="s">'lat'</span><span class="p">,</span><span class="s">'COUNT'</span><span class="p">])</span>
 </code></pre></div></div>
 
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">geodf</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">geolocations</span><span class="p">,</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s">'EMPLOYER_NAME'</span><span class="p">,</span><span class="s">'ADDRESS'</span><span class="p">,</span><span class="s">'lon'</span><span class="p">,</span><span class="s">'lat'</span><span class="p">,</span><span class="s">'COUNT'</span><span class="p">])</span>
-<span class="n">geodf</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="s">'geolocations.csv'</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s">'</span><span class="se">\t</span><span class="s">'</span><span class="p">,</span> <span class="n">encoding</span><span class="o">=</span><span class="s">'utf-8'</span><span class="p">)</span>
-</code></pre></div></div>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">geodf</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">read_csv</span><span class="p">(</span><span class="s">'geolocations.csv'</span><span class="p">,</span> <span class="n">sep</span><span class="o">=</span><span class="s">'</span><span class="se">\t</span><span class="s">'</span><span class="p">)</span>
-</code></pre></div></div>
-
-<p>To plot the employers locations on a map we use plotly, which provides a traightforward way of vizualizing geographical data. To make the image more readable we separate the employers by color and blob size according to the number of supported visas.</p>
+<p>To plot the employers locations on a map we use Plotly, which provides a straightforward way of visualizing geographical data. First we want to use a geographical scatter-plot, where the size and color of a point represents the amount of supported visas at a certain location.</p>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">plotly.plotly</span> <span class="k">as</span> <span class="n">py</span>
 <span class="kn">import</span> <span class="nn">plotly</span>
+</code></pre></div></div>
 
-<span class="c"># geodf1=geodf[geodf['lon']&lt;-50]</span>
-<span class="n">geodf</span><span class="p">[</span><span class="s">'text'</span><span class="p">]</span> <span class="o">=</span> <span class="s">'Employer: '</span> <span class="o">+</span> <span class="n">geodf</span><span class="p">[</span><span class="s">'EMPLOYER_NAME'</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">+</span> <span class="s">'&lt;br&gt;'</span> <span class="o">+</span> <span class="s">'Address: '</span> <span class="o">+</span> <span class="n">geodf</span><span class="p">[</span><span class="s">'ADDRESS'</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">+</span> <span class="s">'&lt;br&gt;'</span> <span class="o">+</span> <span class="s">'Supports '</span> <span class="o">+</span> <span class="n">geodf</span><span class="p">[</span><span class="s">'COUNT'</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">+</span> <span class="s">' H1-B visas'</span>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">geodf</span><span class="p">[</span><span class="s">'text'</span><span class="p">]</span> <span class="o">=</span> <span class="s">'Employer: '</span> <span class="o">+</span> <span class="n">geodf</span><span class="p">[</span><span class="s">'EMPLOYER_NAME'</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">+</span> <span class="s">'&lt;br&gt;'</span> <span class="o">+</span> <span class="s">'Address: '</span> <span class="o">+</span> <span class="n">geodf</span><span class="p">[</span><span class="s">'ADDRESS'</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">+</span> <span class="s">'&lt;br&gt;'</span> <span class="o">+</span> <span class="s">'Supports '</span> <span class="o">+</span> <span class="n">geodf</span><span class="p">[</span><span class="s">'COUNT'</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">+</span> <span class="s">' H1-B visas'</span>
 
 <span class="n">limits</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="mi">10</span><span class="p">),(</span><span class="mi">11</span><span class="p">,</span><span class="mi">50</span><span class="p">),(</span><span class="mi">51</span><span class="p">,</span><span class="mi">100</span><span class="p">),(</span><span class="mi">100</span><span class="p">,</span><span class="mi">250</span><span class="p">)]</span>
 <span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="s">"rgb(153, 102, 255)"</span><span class="p">,</span><span class="s">"rgb(0, 153, 255)"</span><span class="p">,</span><span class="s">"rgb(255, 255, 0)"</span><span class="p">,</span><span class="s">"rgb(204, 0, 0)"</span><span class="p">]</span>
@@ -282,13 +252,84 @@ Mean wages for Data Analysts:    77357.74</p>
 <span class="p">)</span>
 
 <span class="n">fig</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span> <span class="n">data</span><span class="o">=</span><span class="n">places</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="n">layout</span> <span class="p">)</span>
-<span class="n">plotly</span><span class="o">.</span><span class="n">offline</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span> <span class="n">fig</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s">'h1bemployersonmap.html'</span> <span class="p">)</span>
+<span class="n">plotly</span><span class="o">.</span><span class="n">offline</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span> <span class="n">fig</span><span class="p">,</span> <span class="n">validate</span><span class="o">=</span><span class="bp">False</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s">'h1bemployerspercitymap.html'</span> <span class="p">)</span>
 </code></pre></div></div>
 
-<p>Click the image to view it in full detail and explore the map!
-<a href="/h1bemployersonmap.html" target="_blank"><img src="/images/h1bemployersonmap.png" alt="H1-B employers on map" title="Click to view full image" /></a></p>
+<p>Click the image to view and explore the map in full detail!
+<a href="/h1bemployerspercitymap.html" target="_blank" class="image seventyfive"><img src="/images/h1bemployerspercitymap.png" alt="" /></a></p>
 
-<p>That’s it! from the map we can see that there are a number of companies that support a large number of visas, like Google, Amazon and the like. Of course this was to be expexted. But there are also a large number of companies that only support one or a few visas. This is certainly some useful information if you’re palnning to look for a job in data science.</p>
+<p>From the map we can see that there are a number of companies that support a large number of visas, like Google, Amazon and the like. Of course this was to be expexted. But now we can also see that a large number of companies that only support one or a few visas is scatter all over the US.</p>
+
+<p>To see in which state the most data science jobs are we can again use Plotly, this time with a choropleth map. We can simply count the number of employers per state given the <code class="highlighter-rouge">EMPLOYER_STATE</code> attribute and the tint of the individual states show us how many jobs there are.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">jobs_unique_state</span><span class="o">=</span><span class="n">jobs</span><span class="o">.</span><span class="n">drop_duplicates</span><span class="p">(</span><span class="n">subset</span><span class="o">=</span><span class="s">'EMPLOYER_STATE'</span><span class="p">,</span> <span class="n">keep</span><span class="o">=</span><span class="s">'first'</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">(</span><span class="n">drop</span><span class="o">=</span><span class="bp">True</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">employers_unique_state</span><span class="o">=</span><span class="n">jobs</span><span class="p">[</span><span class="s">'EMPLOYER_STATE'</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">(</span><span class="n">sort</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
+<span class="n">jobs_unique_state</span><span class="p">[</span><span class="s">'COUNT'</span><span class="p">]</span><span class="o">=</span><span class="s">""</span>
+<span class="k">for</span> <span class="n">idx</span><span class="p">,</span><span class="n">js</span> <span class="ow">in</span> <span class="n">jobs_unique_state</span><span class="o">.</span><span class="n">iterrows</span><span class="p">():</span>
+    <span class="n">jobs_unique_state</span><span class="p">[</span><span class="s">'COUNT'</span><span class="p">]</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span><span class="o">=</span><span class="n">employers_unique_state</span><span class="p">[</span><span class="n">js</span><span class="p">[</span><span class="s">'EMPLOYER_STATE'</span><span class="p">]]</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">scl</span> <span class="o">=</span> <span class="p">[[</span><span class="mf">0.0</span><span class="p">,</span> <span class="s">'rgb(242,240,247)'</span><span class="p">],[</span><span class="mf">0.2</span><span class="p">,</span> <span class="s">'rgb(218,218,235)'</span><span class="p">],[</span><span class="mf">0.4</span><span class="p">,</span> <span class="s">'rgb(188,189,220)'</span><span class="p">],</span>\
+            <span class="p">[</span><span class="mf">0.6</span><span class="p">,</span> <span class="s">'rgb(158,154,200)'</span><span class="p">],[</span><span class="mf">0.8</span><span class="p">,</span> <span class="s">'rgb(117,107,177)'</span><span class="p">],[</span><span class="mf">1.0</span><span class="p">,</span> <span class="s">'rgb(84,39,143)'</span><span class="p">]]</span>
+
+<span class="n">jobs_unique_state</span><span class="p">[</span><span class="s">'text'</span><span class="p">]</span> <span class="o">=</span> <span class="n">jobs_unique_state</span><span class="p">[</span><span class="s">'COUNT'</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">+</span> <span class="s">' supported H1-B visas'</span>
+
+<span class="n">data</span> <span class="o">=</span> <span class="p">[</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="nb">type</span><span class="o">=</span><span class="s">'choropleth'</span><span class="p">,</span>
+        <span class="n">colorscale</span> <span class="o">=</span> <span class="n">scl</span><span class="p">,</span>
+        <span class="n">autocolorscale</span> <span class="o">=</span> <span class="bp">False</span><span class="p">,</span>
+        <span class="n">locations</span> <span class="o">=</span> <span class="n">jobs_unique_state</span><span class="p">[</span><span class="s">'EMPLOYER_STATE'</span><span class="p">],</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="n">jobs_unique_state</span><span class="p">[</span><span class="s">'COUNT'</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">),</span>
+        <span class="n">locationmode</span> <span class="o">=</span> <span class="s">'USA-states'</span><span class="p">,</span>
+        <span class="n">text</span> <span class="o">=</span> <span class="n">jobs_unique_state</span><span class="p">[</span><span class="s">'text'</span><span class="p">],</span>
+        <span class="n">marker</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">line</span> <span class="o">=</span> <span class="nb">dict</span> <span class="p">(</span>
+                <span class="n">color</span> <span class="o">=</span> <span class="s">'rgb(255,255,255)'</span><span class="p">,</span>
+                <span class="n">width</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="p">)</span> <span class="p">),</span>
+        <span class="n">colorbar</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">title</span> <span class="o">=</span> <span class="s">"H1-B visas"</span><span class="p">)</span>
+        <span class="p">)</span> <span class="p">]</span>
+
+<span class="n">layout</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">title</span> <span class="o">=</span> <span class="s">'H1-B Employers in 2018 by State&lt;br&gt;(Hover for details)'</span><span class="p">,</span>
+        <span class="n">geo</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">scope</span><span class="o">=</span><span class="s">'usa'</span><span class="p">,</span>
+            <span class="n">projection</span><span class="o">=</span><span class="nb">dict</span><span class="p">(</span> <span class="nb">type</span><span class="o">=</span><span class="s">'albers usa'</span> <span class="p">),</span>
+            <span class="n">showlakes</span> <span class="o">=</span> <span class="bp">True</span><span class="p">,</span>
+            <span class="n">lakecolor</span> <span class="o">=</span> <span class="s">'rgb(255, 255, 255)'</span><span class="p">),</span>
+             <span class="p">)</span>
+    
+<span class="n">fig</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">,</span> <span class="n">layout</span><span class="o">=</span><span class="n">layout</span> <span class="p">)</span>
+<span class="n">plotly</span><span class="o">.</span><span class="n">offline</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span> <span class="n">fig</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s">'h1bemployersperstatemap.html'</span> <span class="p">)</span>
+</code></pre></div></div>
+
+<p>Click the image to view and explore the map in full detail!
+<a href="/h1bemployersperstatemap.html" target="_blank" class="image seventyfive"><img src="/images/h1bemployersperstatemap.png" alt="" /></a></p>
+
+<p>That’s it! Of course it is no surprise that the most data science positions are in California, but there are also a number of places on the east cost that support H1-B visas (and even some states without any H1-B visa supporters).  This is certainly some useful information if you’re planing to look for a job in data science.</p>
+
+<div id="disqus_thread"></div>
+<script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = /2018/09/24/H1-B_blog.html;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = /2018/09/24/H1-B_blog; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+s.src = 'https://EXAMPLE.disqus.com/embed.js';
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 
         </section>
         
