@@ -6,9 +6,42 @@
 </description>
     <link>http://sebmerkt.github.io/</link>
     <atom:link href="http://sebmerkt.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Tue, 09 Oct 2018 23:41:08 -0400</pubDate>
-    <lastBuildDate>Tue, 09 Oct 2018 23:41:08 -0400</lastBuildDate>
+    <pubDate>Thu, 11 Oct 2018 11:52:54 -0400</pubDate>
+    <lastBuildDate>Thu, 11 Oct 2018 11:52:54 -0400</lastBuildDate>
     <generator>Jekyll v3.8.3</generator>
+    
+      <item>
+        <title>My first Android App</title>
+        <description>&lt;p&gt;&lt;a class=&quot;image seventyfive&quot;&gt;&lt;img src=&quot;/images/convert_app.png&quot; class=&quot;fit image&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;div id=&quot;disqus_thread&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = /2018/10/09/Android.html;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = /2018/10/09/Android; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+s.src = 'https://sebmerkt.disqus.com/embed.js';
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+&lt;/script&gt;
+
+&lt;noscript&gt;Please enable JavaScript to view the &lt;a href=&quot;https://disqus.com/?ref_noscript&quot;&gt;comments powered by Disqus.&lt;/a&gt;&lt;/noscript&gt;
+</description>
+        <pubDate>Tue, 09 Oct 2018 00:00:00 -0400</pubDate>
+        <link>http://sebmerkt.github.io/2018/10/09/Android.html</link>
+        <guid isPermaLink="true">http://sebmerkt.github.io/2018/10/09/Android.html</guid>
+        
+        
+      </item>
     
       <item>
         <title>How to find employers that sponsor H1-B visas</title>
