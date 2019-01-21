@@ -9,18 +9,7 @@
 <head>
     <!-- Google Analytics -->
     
-    <!-- Global site tag (gtag.js) - Google Analytics -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=UA-125852315-1"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-
-  gtag('config', 'UA-125852315-1');
-</script>
-
-    
-    <title>My first Android App</title>
+    <title>Everyday Converter: My first Android App</title>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <meta name="description" content="" />
     <meta name="keywords" content="" />
@@ -37,6 +26,8 @@
     </noscript>
     <!-- <link rel="stylesheet" href="/monokai.css" /> -->
     <link href="/css/syntax.css" rel="stylesheet" >
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+
 
 </head>
 
@@ -54,6 +45,9 @@
             <!-- <li><a href="/no-sidebar.html">No Sidebar</a></li> -->
             <li><a href="/#eventsection">Events</a></li>
             <li><a href="/blog.html">Blog</a></li>
+            <li><a href="/everyday_converter.html">Everyday Converter</a></li>
+            
+                  
             
                   
             
@@ -79,12 +73,29 @@
         <div class="wrapper style1">
     <article class="container">
         <header class="major">
-            <h2 class="post-title">My first Android App</h2>
+            <h2 class="post-title">Everyday Converter: My first Android App</h2>
                 <p class="post-meta">Oct 9, 2018</p>
         </header>
 
         <section class="post-content">
-            <p><a class="image seventyfive"><img src="/images/convert_app.png" class="fit image" /></a></p>
+            <p><a class="image right"><img src="/images/everyday_conv_screenshot2_framed.png" width="300" /></a></p>
+
+<h2>Why a converter app</h2>
+<p>Coming from Germany I grew up with the metric system. Travel distances are measured in kilometers, a persons weight is given in kilograms. A few years ago I moved to the US and I realized that it was sometimes difficult to figure out what a number meant when it was given in an ‘unknown’ unit. When you go to a bar in Germany and the ask you whether you want a 0.33L or 0.5L beer I knew what they were asking me. In the US, I was confronted with the choice of a 12oz or 16oz beer and I had no idea what I would get. So I got the idea to have a converter always handy on my wrist that allows me to quickly convert between US and metric units without even taking my phone out of my pocket.</p>
+
+<h2>Getting to grips with Android</h2>
+<p>Before I started to develop my first Android apps the whole endeavor seemed … Setting up the Android development environment on my laptop, getting the apps to work on the phone, etc. However, once I started setting up Android Studio I realized that Google actually did a very good job of making Android easy to use. Installing Android Studio, connecting your phone, tablet and even smartwatch is a straight forward process that is well documented in many places.</p>
+
+<p>I started to play around with Android a while before I got my first smartwatch. At that time it was mostly just taking some online courses at Udacity and the like and developing some apps just to test a new feature I just learned. However, developing an Android app did not just mean to learn how to use Android Studio, but also to learn a new programming language, Java. This was my first encounter with the language so far but it was actually not that hard to pick up on the go due. The Java syntax is very similar to the C/C++ syntax.</p>
+
+<p><a class="image right"><img src="/images/everyday_conv_wear_conversion.png" width="200" /></a></p>
+<h2>Designing the UI</h2>
+<p>The UI was designed in such a way as to not overload the user with too much information. The amount of available unit categories was kept at a minimum with only those units that are relevant for everyday life. Scientific units such as force or power are rarely used on a regular basis and if so, than a quick Google search still gives the answer. For this reason the main UI consists of only a few buttons that will guide the user straight to the respective conversion table. The user can then enter a number and choose the input unit. This is the unit that should be converted. Subsequently, a table of all available output units and their respective values are shown. For convenience, a few settings are available, such as changing the default input unit to US or metric. This is useful when the user primarily  wants to convert units from US to metric or vice versa. Also the display of the results can be modified by changing how many digits are shown or whether the full unit name is displayed or just the unit abbreviation.</p>
+
+<p>For a detailed description of the apps, check out the <a href="/everyday_converter.html">Everyday Converter user guide</a>.</p>
+
+<h2>Testing on different devices</h2>
+<p>Besides my current and former phone I could also test my applications on an an Amazon Fire tablet (which is not useful for anything else really). For the Wear OS application I use my Fossil Q Exporist smartwatch. In addition you get the possibility to set up a whole line of virtual devices within Android Studio. This provides a perfect way of testing your app on devices with all kinds of different settings, screen sizes, resolutions and so on.</p>
 
 <div id="disqus_thread"></div>
 <script>
@@ -158,6 +169,7 @@ s.setAttribute('data-timestamp', +new Date());
                     <li><a href="#" class="icon fa-instagram"><span class="label">Instagram</span></a></li>
                     <li><a href="#" class="icon fa-linkedin"><span class="label">LinkedIn</span></a></li> -->
                     <li><a href="https://github.com/sebmerkt" target="_blank" class="icon fa-github"><span class="label">Github</span></a></li>
+                    <li><a href="https://www.kaggle.com/samiamami" target="_blank" class="fab fa-kaggle"></a></li>
                 </ul>
             </div>
         </div>
