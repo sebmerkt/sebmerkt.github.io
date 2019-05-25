@@ -4,32 +4,237 @@
     <title>It's a data thing</title>
     <description>This blog is a collection of projects that I worked, overing all sorts of topic including data science, physics or just simple handcrafting.
 </description>
-    <link>http://localhost:4000/</link>
-    <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Mon, 21 Jan 2019 17:22:08 -0500</pubDate>
-    <lastBuildDate>Mon, 21 Jan 2019 17:22:08 -0500</lastBuildDate>
+    <link>http://sebmerkt.github.io/</link>
+    <atom:link href="http://sebmerkt.github.io/feed.xml" rel="self" type="application/rss+xml" />
+    <pubDate>Sat, 25 May 2019 14:07:10 -0400</pubDate>
+    <lastBuildDate>Sat, 25 May 2019 14:07:10 -0400</lastBuildDate>
     <generator>Jekyll v3.8.3</generator>
+    
+      <item>
+        <title>Exploring ATLAS Physics Data Sets in Python using uproot</title>
+        <description>&lt;!-- &lt;a class=&quot;image right&quot;&gt;&lt;img src=&quot;/images/atlas-data.png&quot; width=&quot;300&quot;&gt;&lt;/a&gt; --&gt;
+
+&lt;p&gt;In this post I want to show you how python can be used for a physics data analysis instead of the more widely used ROOT. Even though ROOT has its advantages when it comes to processing large datasets on the computing grid, running it on your personal computer can often be tedious. Python gives you a verity of tool, helpful especially in the late analysis stage, e.g. for creating plots or tables.&lt;/p&gt;
+
+&lt;p&gt;During CHEP 2018 Jim Pivarski gave a &lt;a href=&quot;https://indico.cern.ch/event/587955/contributions/2937525/&quot; target=&quot;_blank&quot;&gt;talk&lt;/a&gt; where he presented &lt;a href=&quot;https://github.com/scikit-hep/uproot&quot; target=&quot;_blank&quot;&gt;uproot&lt;/a&gt;, a python/numpy framework to read ROOT files. Naturally, I wanted to try it out myself.&lt;/p&gt;
+
+&lt;h2&gt;Install uproot&lt;/h2&gt;
+
+&lt;p&gt;To install uproot through pip you can do&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;pip3 &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;uproot &lt;span class=&quot;nt&quot;&gt;--user&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Alternatively, check the GitHub page for other ways to install uproot.&lt;/p&gt;
+
+&lt;h2&gt;Import a data set and explore its contents&lt;/h2&gt;
+
+&lt;p&gt;After installing uproot we can easily import it in our python notebook. Loading the data works with the &lt;code class=&quot;highlighter-rouge&quot;&gt;uproot.open()&lt;/code&gt; command. Once open, we can list the content of the ROOTDirectory. In our case, there is only one  TTree called &lt;code class=&quot;highlighter-rouge&quot;&gt;mini&lt;/code&gt; in the ROOT file. The TTree is the actual data set that contains all the physics attributes of the data. In principle, a ROOTDirectory can consist several TTrees.&lt;/p&gt;
+
+&lt;p&gt;The data we use here is a public data set from the &lt;a href=&quot;http://opendata.atlas.cern/extendedanalysis/datasets.php&quot; target=&quot;_blank&quot;&gt;ATLAS open data&lt;/a&gt; page. It not real data collected by the ATLAS detector, but simulated data generated with a Monte Carlo event generator. I chose for this example the t-channel top single top-quark data set. The top quark is the heaviest elementary particle known so far and has many interesting properties. It is also the basis of my work at CERN. However, you can feel free to explore other data sets as well.&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;uproot&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;uproot&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;open&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;mc_110090.stop_tchan_top.root&quot;&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;keys&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[b'mini;1']
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;As we can see, there is one data set in the ROOTDirectory called &lt;code class=&quot;highlighter-rouge&quot;&gt;mini&lt;/code&gt;. Let’s extract the information from the data set. We store the TTree in variable called singletop_data, since we know the ROOT file contains data from single top physics. Again we can print the contents of the TTree. This will give us a list of all physics objects and their properties, like energy, transverse momentum, etc. from particles like leptons and jets and also information on the physics run, like run number and event number.&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;singletop_data&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'mini'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;singletop_data&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;keys&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[b'runNumber', b'eventNumber', b'channelNumber', b'mcWeight', b'pvxp_n', b'vxp_z', b'scaleFactor_PILEUP', b'scaleFactor_ELE', b'scaleFactor_MUON', b'scaleFactor_BTAG', b'scaleFactor_TRIGGER', b'scaleFactor_JVFSF', b'scaleFactor_ZVERTEX', b'trigE', b'trigM', b'passGRL', b'hasGoodVertex', b'lep_n', b'lep_truthMatched', b'lep_trigMatched', b'lep_pt', b'lep_eta', b'lep_phi', b'lep_E', b'lep_z0', b'lep_charge', b'lep_type', b'lep_flag', b'lep_ptcone30', b'lep_etcone20', b'lep_trackd0pvunbiased', b'lep_tracksigd0pvunbiased', b'met_et', b'met_phi', b'jet_n', b'alljet_n', b'jet_pt', b'jet_eta', b'jet_phi', b'jet_E', b'jet_m', b'jet_jvf', b'jet_trueflav', b'jet_truthMatched', b'jet_SV0', b'jet_MV1']
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;To handle the data we put everything into a DataFrame. Each row of the DataFrame corresponds to one event, given by the &lt;code class=&quot;highlighter-rouge&quot;&gt;eventNumber&lt;/code&gt;. Taking a closer look, we see that some of the features have lists as entries. For example, the &lt;code class=&quot;highlighter-rouge&quot;&gt;b'jet_pt'&lt;/code&gt; has a list of jet pt values for each event, where each value corresponds to one jet in the event. The jet pt is the transverse momentum of a jet. This also tells us how many jets or other particles of a certain type are in an event.&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;pandas&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pd&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;numpy&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pd&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;DataFrame&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;singletop_data&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;arrays&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;())&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;set_index&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'eventNumber'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h2&gt;Do a simple analysis&lt;/h2&gt;
+
+&lt;p&gt;At this point we are ready to analyze the data. To start, we can plot a histogram with the transverse momentum distribution of the jets. For that we first collect all jet momenta in a single list that we can then plot with matplotlib.&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;matplotlib.pyplot&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;
+&lt;span class=&quot;kn&quot;&gt;import&lt;/span&gt; &lt;span class=&quot;nn&quot;&gt;matplotlib.patches&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;as&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mpatches&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;jet_pts&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;idx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;evt&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'jet_pt'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;iteritems&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;():&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;pt&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;evt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;jet_pts&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;pt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;color_jet&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'darkslateblue'&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hist&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;jet_pts&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;color&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;color_jet&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bins&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;xlabel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'Transverse momentum [GeV]'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ylabel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'# of events'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;xlim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;200&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;patch_jet&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mpatches&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Patch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;color&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;color_jet&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;label&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'Jets'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;legend&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;handles&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;patch_jet&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;br /&gt;
+&lt;a class=&quot;image&quot;&gt;&lt;img src=&quot;/images/uproot_jet_pt.png&quot; width=&quot;500&quot; /&gt;&lt;/a&gt;
+&lt;br /&gt;&lt;/p&gt;
+
+&lt;p&gt;Since we have all the data conveniently in a DataFrame we can also explore some more. For example we can determine what the ratio between electrons and muons in this run is. Both, electrons and muons are leptons and they are stored in the same feature. To separate them, we just loop over all leptons and sort them by their particle ID. A particle ID of 11 corresponds to an electron, an ID of 13 corresponds to a muon, This is the so called Monte Carlo numbering scheme. Since we are looking at single top production, there should only be one lepton in the event. Therefore we throw away all events with more or less than one lepton. These events are called background events, events that mimic the single top event, but actually have a different underlying physical process. In addition to the sorting, we also save the lepton energy.&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;electrons&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;muons&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[]&lt;/span&gt;
+&lt;span class=&quot;k&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;idx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;evt&lt;/span&gt; &lt;span class=&quot;ow&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'lep_type'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;iteritems&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;():&lt;/span&gt;
+    &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;evt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;n&quot;&gt;lep&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;evt&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lep&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;13&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;muons&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'lep_E'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;idx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;][&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+        &lt;span class=&quot;k&quot;&gt;elif&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;lep&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;==&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;11&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;:&lt;/span&gt;
+            &lt;span class=&quot;n&quot;&gt;electrons&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;append&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;df&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'lep_E'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;values&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;idx&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;][&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Now we have the electrons and muons separated we can determine the ratio.&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;k&quot;&gt;print&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;&quot;Ratio of electrons over muons: &quot;&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;+&lt;/span&gt; &lt;span class=&quot;nb&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;round&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;electrons&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;))&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;len&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;muons&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)),&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;decimals&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)))&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;Ratio of electrons over muons: 1.053
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;As expected, the ratio is close to one, with a few more electrons. Finally, we can also plot the distribution of the electron and muon energies.&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;color_el&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'darkslateblue'&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;color_mu&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'goldenrod'&lt;/span&gt;
+
+&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;hist&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;([&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;electrons&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;np&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;array&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;muons&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;1000&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;bins&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;80&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;color&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;color_el&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;color_mu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;],&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;stacked&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;bp&quot;&gt;True&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;xlabel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'Lepton energy [GeV]'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;ylabel&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'# of events'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;xlim&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;mi&quot;&gt;400&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;patch_el&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mpatches&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Patch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;color&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;color_el&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;label&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'Electrons'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;patch_mu&lt;/span&gt; &lt;span class=&quot;o&quot;&gt;=&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;mpatches&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;Patch&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;color&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;color_mu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;label&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;s&quot;&gt;'Muons'&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;legend&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;handles&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;patch_el&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;patch_mu&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;])&lt;/span&gt;
+&lt;span class=&quot;n&quot;&gt;plt&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;()&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;a class=&quot;image&quot;&gt;&lt;img src=&quot;/images/uproot_lepton_energy.png&quot; width=&quot;500&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;div id=&quot;disqus_thread&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = /2019/04/17/uproot.html;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = /2019/04/17/uproot; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+s.src = 'https://sebmerkt.disqus.com/embed.js';
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+&lt;/script&gt;
+
+&lt;noscript&gt;Please enable JavaScript to view the &lt;a href=&quot;https://disqus.com/?ref_noscript&quot;&gt;comments powered by Disqus.&lt;/a&gt;&lt;/noscript&gt;
+</description>
+        <pubDate>Wed, 17 Apr 2019 00:00:00 -0400</pubDate>
+        <link>http://sebmerkt.github.io/2019/04/17/uproot.html</link>
+        <guid isPermaLink="true">http://sebmerkt.github.io/2019/04/17/uproot.html</guid>
+        
+        
+      </item>
+    
+      <item>
+        <title>My First Kaggle Kernel</title>
+        <description>&lt;p&gt;&lt;a class=&quot;image seventyfive&quot;&gt;&lt;img src=&quot;/images/pubg.jpg&quot; width=&quot;fit image&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;PlayerUnknown’s Battlegrounds is currently one of the most popular Battle Royal type shooters with Millions of players worldwide. This popularity also means that there is a huge amount of data available. The data used in the Kaggle kernel competition ‘PUBG Finish Placement Prediction’ consisted of match statistics data taken from the official PUBG API. The goal of the competition was to predict the label &lt;code class=&quot;highlighter-rouge&quot;&gt;winPlacePerc&lt;/code&gt;, that is the percentage rank a player or team achieved in a match. The features were basic game stats such as &lt;code class=&quot;highlighter-rouge&quot;&gt;kills&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;heals&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;walkDistance&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;damageDealt&lt;/code&gt;, and so on.&lt;/p&gt;
+
+&lt;p&gt;Since the percentage rank is defined for a individual match, my idea was to train a neural net incrementally, one match at a time, and then make the predictions in the same way. The scikit-learn framework provides a multi-layer perceptron (MLP) regressor&lt;/p&gt;
+
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;sklearn&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;neural_network&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;MLPRegressor&lt;/span&gt; 
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;which can be trained incrementally my calling the method&lt;/p&gt;
+&lt;div class=&quot;language-python highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;n&quot;&gt;partial_fit&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;n&quot;&gt;x_train&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;,&lt;/span&gt; &lt;span class=&quot;n&quot;&gt;y_train&lt;/span&gt;&lt;span class=&quot;p&quot;&gt;)&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;To feed the data to the model, a few modifications were in order. For one, the data was divided in different match types, defined by the features &lt;code class=&quot;highlighter-rouge&quot;&gt;matchType&lt;/code&gt;. Available match types were solo, duo team and crash, where the first three types correspond to the size of the teams in a match (1 player, two players or four player) and the last type is a special event type of match where player do not use fire arms, but instead use melee weapons and vehicles to kill each other. Of course not all features were equally important in all match types, e.g. the feature &lt;code class=&quot;highlighter-rouge&quot;&gt;revives&lt;/code&gt; had little impact on the &lt;code class=&quot;highlighter-rouge&quot;&gt;winPlacePerc&lt;/code&gt; in the solo player matches. The respective features were then removed in the data set of that specific match type.&lt;/p&gt;
+
+&lt;p&gt;&lt;a class=&quot;image right&quot;&gt;&lt;img src=&quot;/images/PUBG_corr.png&quot; width=&quot;700&quot; /&gt;&lt;/a&gt;
+Once the data was sorted according to the match type, the features needed to be transformed into a form the MLP regressor can handle. In the first step, I reduced the number of features. The data set contains many numerical features, so my idea was to use a PCA analysis to get the main components and only fit on those. However, the partial fit method in the MLP regressor has a bug that prevented me from reducing the number of components. Therefore I chose to manually remove in each match type the features that had the least correlation with &lt;code class=&quot;highlighter-rouge&quot;&gt;winPlacePerc&lt;/code&gt; and use PCA on the remaining ones. Finally, since I used a neural net, the data needed  scaled. For this I chose the sk-learn&lt;code class=&quot;highlighter-rouge&quot;&gt;MinMaxScaler&lt;/code&gt;. In the picture you can see a sample of the correlation matrix for the solo matches. As you can see, the feature &lt;code class=&quot;highlighter-rouge&quot;&gt;roadKills&lt;/code&gt; has only a tiny correlation with &lt;code class=&quot;highlighter-rouge&quot;&gt;winPlacePerc&lt;/code&gt; and is therefore removed. Large correlation, and therefore large impact on the &lt;code class=&quot;highlighter-rouge&quot;&gt;winPlacePerc&lt;/code&gt; came from the features &lt;code class=&quot;highlighter-rouge&quot;&gt;boosts&lt;/code&gt;, &lt;code class=&quot;highlighter-rouge&quot;&gt;killPlace&lt;/code&gt; and &lt;code class=&quot;highlighter-rouge&quot;&gt;walkDistance&lt;/code&gt;. At first glance walk distance does not seem very important for winning. However, once you realize that walk distance is also correlated to the time a player stayed in a match, it’s clear that players that had large walk distances survived for longer and were therefore placed higher in the final score.&lt;/p&gt;
+
+&lt;p&gt;In the last step before the training, I filtered out all matches that had a total of only one or two player. The reason is, that the outcome of these matches can be predicted ‘manually’. Matches with only one player automatically assign the player a &lt;code class=&quot;highlighter-rouge&quot;&gt;winPlacePerc&lt;/code&gt; of 0.0. For matches with a total of two player, the player with a lower &lt;code class=&quot;highlighter-rouge&quot;&gt;killPlace&lt;/code&gt; had a &lt;code class=&quot;highlighter-rouge&quot;&gt;winPlacePerc&lt;/code&gt; of 1.0 in 99% of the training samples.&lt;/p&gt;
+
+&lt;p&gt;The remaining matches were then fed into the neural net. To evaluate the performance, I used a k-fold type cross validation on random subsets of the training data. The resulting evaluation mean absolute error was 0.06078. Compared to the Kernel’s Public Score of 0.05489, it did a bit better on the test data, than it did on the training data.&lt;/p&gt;
+
+&lt;p&gt;Check out my &lt;a href=&quot;https://www.kaggle.com/samiamami/one-match-at-a-time&quot;&gt;Kaggle Kernel&lt;/a&gt; to get the details.&lt;/p&gt;
+
+&lt;div id=&quot;disqus_thread&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = /2019/02/08/First_Kaggle.html;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = /2019/02/08/First_Kaggle; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+s.src = 'https://sebmerkt.disqus.com/embed.js';
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+&lt;/script&gt;
+
+&lt;noscript&gt;Please enable JavaScript to view the &lt;a href=&quot;https://disqus.com/?ref_noscript&quot;&gt;comments powered by Disqus.&lt;/a&gt;&lt;/noscript&gt;
+</description>
+        <pubDate>Fri, 08 Feb 2019 00:00:00 -0500</pubDate>
+        <link>http://sebmerkt.github.io/2019/02/08/First_Kaggle.html</link>
+        <guid isPermaLink="true">http://sebmerkt.github.io/2019/02/08/First_Kaggle.html</guid>
+        
+        
+      </item>
     
       <item>
         <title>Everyday Converter: My first Android App</title>
         <description>&lt;p&gt;&lt;a class=&quot;image right&quot;&gt;&lt;img src=&quot;/images/everyday_conv_screenshot2_framed.png&quot; width=&quot;300&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
 
 &lt;h2&gt;Why a converter app&lt;/h2&gt;
-&lt;p&gt;Coming from Germany I grew up with the metric system. Travel distances are measured in kilometers, a persons weight is given in kilograms. A few years ago I moved to the US and I realized that it was sometimes difficult to figure out what a number meant when it was given in an ‘unknown’ unit. When you go to a bar in Germany and the ask you whether you want a 0.33L or 0.5L beer I knew what they were asking me. In the US, I was confronted with the choice of a 12oz or 16oz beer and I had no idea what I would get. So I got the idea to have a converter always handy on my wrist that allows me to quickly convert between US and metric units without even taking my phone out of my pocket.&lt;/p&gt;
+&lt;p&gt;Coming from Germany I grew up with the metric system. Travel distances are measured in kilometers, a persons weight is given in kilograms. A few years ago I moved to the US and I realized that it was sometimes difficult to figure out what a number meant when it was given in an ‘unknown’ unit. When you go to a bar in Germany and the ask you whether you want a 0.33L or 0.5L beer I knew what they were asking me. In the US, I was confronted with the choice of a 12oz or 16oz beer and I had no idea what either one would get me. So I got the idea to have a converter always handy on my wrist that allows me to quickly convert between US and metric units without even taking my phone out of my pocket.&lt;/p&gt;
 
 &lt;h2&gt;Getting to grips with Android&lt;/h2&gt;
-&lt;p&gt;Before I started to develop my first Android apps the whole endeavor seemed … Setting up the Android development environment on my laptop, getting the apps to work on the phone, etc. However, once I started setting up Android Studio I realized that Google actually did a very good job of making Android easy to use. Installing Android Studio, connecting your phone, tablet and even smartwatch is a straight forward process that is well documented in many places.&lt;/p&gt;
+&lt;p&gt;Before I started to develop my first Android apps the whole endeavor seemed a bit overpowering. Having no idea where to begin I started googling the internet and soon realized that it might not be as difficult as I first imagined. Setting up the Android development environment on my laptop, getting the apps to work on the phone, etc was straight forward and there are many helpful tutorials and instructions online. After I set up my development environment, that task of app development began. At first it was mostly just taking some online courses at Udacity, which proved to be very instructive, and developing some simple apps just to test a new feature I just learned. However, developing an Android app did not just mean to learn how to use &lt;a href=&quot;https://developer.android.com/studio&quot; target=&quot;_blank&quot;&gt;Android Studio&lt;/a&gt;, but also to learn a new programming language, Java. This was my first encounter with the language so far but it was actually not that hard to pick up on the go since the Java syntax is very similar to the C/C++, which I am used to.&lt;/p&gt;
 
-&lt;p&gt;I started to play around with Android a while before I got my first smartwatch. At that time it was mostly just taking some online courses at Udacity and the like and developing some apps just to test a new feature I just learned. However, developing an Android app did not just mean to learn how to use Android Studio, but also to learn a new programming language, Java. This was my first encounter with the language so far but it was actually not that hard to pick up on the go due. The Java syntax is very similar to the C/C++ syntax.&lt;/p&gt;
-
-&lt;p&gt;&lt;a class=&quot;image right&quot;&gt;&lt;img src=&quot;/images/everyday_conv_wear_conversion.png&quot; width=&quot;200&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;!-- &lt;a class=&quot;image right&quot;&gt;&lt;img src=&quot;/images/everyday_conv_wear_conversion.png&quot; width=&quot;200&quot;&gt;&lt;/a&gt; --&gt;
 &lt;h2&gt;Designing the UI&lt;/h2&gt;
-&lt;p&gt;The UI was designed in such a way as to not overload the user with too much information. The amount of available unit categories was kept at a minimum with only those units that are relevant for everyday life. Scientific units such as force or power are rarely used on a regular basis and if so, than a quick Google search still gives the answer. For this reason the main UI consists of only a few buttons that will guide the user straight to the respective conversion table. The user can then enter a number and choose the input unit. This is the unit that should be converted. Subsequently, a table of all available output units and their respective values are shown. For convenience, a few settings are available, such as changing the default input unit to US or metric. This is useful when the user primarily  wants to convert units from US to metric or vice versa. Also the display of the results can be modified by changing how many digits are shown or whether the full unit name is displayed or just the unit abbreviation.&lt;/p&gt;
+&lt;p&gt;The UI was designed in such a way as to not overload the user with too much information. The amount of available unit categories was kept at a minimum with only those units that are relevant for everyday life. Scientific units such as force or power are rarely used on a regular basis and if so, than a quick Google search still gives the answer. For this reason the main UI consists of only a few buttons that will guide the user straight to the respective conversion table. The user can then enter a number and choose the input unit. This is the unit that should be converted. Subsequently, a table of all available output units and their respective values are shown. For convenience, a few settings are available, such as changing the default input unit to US or metric. This is useful when the user primarily wants to convert units from US to metric or vice versa. Also the display of the results can be modified by changing how many digits are shown or whether the full unit name is displayed or just the unit abbreviation. 
+&lt;br /&gt;
+&lt;br /&gt;
+Besides designing the app layout, I also had to design new icons to be used as the apps main icon but also for the different unit buttons and so on. This was done using  &lt;a href=&quot;https://inkscape.org/&quot; target=&quot;_blank&quot;&gt;Inkscape&lt;/a&gt;, a vector graphics editor for Linux. Just as the UI layout I kept the icons as simple as possible so that the UI does not get got busy and confusing for the user.&lt;/p&gt;
 
 &lt;p&gt;For a detailed description of the apps, check out the &lt;a href=&quot;/everyday_converter.html&quot;&gt;Everyday Converter user guide&lt;/a&gt;.&lt;/p&gt;
 
 &lt;h2&gt;Testing on different devices&lt;/h2&gt;
-&lt;p&gt;Besides my current and former phone I could also test my applications on an an Amazon Fire tablet (which is not useful for anything else really). For the Wear OS application I use my Fossil Q Exporist smartwatch. In addition you get the possibility to set up a whole line of virtual devices within Android Studio. This provides a perfect way of testing your app on devices with all kinds of different settings, screen sizes, resolutions and so on.&lt;/p&gt;
+&lt;p&gt;Besides my current and former smartphone I could also test my applications on an an Amazon Fire tablet (which is honestly not very useful for anything else really). For the Wear OS application I use my Fossil Q Explorist. In addition you get the possibility to set up a whole line of virtual devices within Android Studio. This provides a convenient way of testing your app on a verity of different devices with all kinds of different settings, screen sizes, resolutions and so on.&lt;/p&gt;
+
+&lt;p&gt;Check out &lt;a href=&quot;https://github.com/sebmerkt/EverydayConverter&quot; target=&quot;_blank&quot;&gt;Everyday Converter&lt;/a&gt; on github or get &lt;a href=&quot;https://play.google.com/store/apps/details?id=io.github.sebmerkt.everydayconverter&quot; target=&quot;_blank&quot;&gt;Everyday Converter&lt;/a&gt; now in the Google Play Store.&lt;/p&gt;
 
 &lt;div id=&quot;disqus_thread&quot;&gt;&lt;/div&gt;
 &lt;script&gt;
@@ -54,16 +259,17 @@ s.setAttribute('data-timestamp', +new Date());
 &lt;noscript&gt;Please enable JavaScript to view the &lt;a href=&quot;https://disqus.com/?ref_noscript&quot;&gt;comments powered by Disqus.&lt;/a&gt;&lt;/noscript&gt;
 </description>
         <pubDate>Tue, 09 Oct 2018 00:00:00 -0400</pubDate>
-        <link>http://localhost:4000/2018/10/09/Android.html</link>
-        <guid isPermaLink="true">http://localhost:4000/2018/10/09/Android.html</guid>
+        <link>http://sebmerkt.github.io/2018/10/09/Android.html</link>
+        <guid isPermaLink="true">http://sebmerkt.github.io/2018/10/09/Android.html</guid>
         
         
       </item>
     
       <item>
-        <title>How to find employers that sponsor H1-B visas</title>
-        <description>&lt;p&gt;&lt;a class=&quot;image seventyfive&quot;&gt;&lt;img src=&quot;/images/matrix.jpg&quot; class=&quot;fit image&quot; /&gt;&lt;/a&gt;
-I got this idea from another &lt;a href=&quot;https://byrony.github.io/how-to-use-data-science-to-find-a-data-science-job-step-1-find-h1b-sponsors.html&quot;&gt;blog by Xiang Cao.&lt;/a&gt; The idea is to use the power of data analysis to find a job in data science. The question is where you can find a company that sponsors H1-B visas. Xiang Cao uses R to analyses the data. In this article I will use python + pandas to go through a similar analysis with the more recent &lt;a href=&quot;https://www.foreignlaborcert.doleta.gov/performancedata.cfm#dis&quot;&gt;H1-B disclosure data&lt;/a&gt; from the federal fiscal year 2018. For geovisualization of the data I will show two examples using Plotly. This will allow us to see the distribution of employers that sponsor H1-B visas on a US map.&lt;/p&gt;
+        <title>How To Find Employers That Sponsor H1-B Visas</title>
+        <description>&lt;!-- &lt;a class=&quot;image seventyfive&quot;&gt;&lt;img src=&quot;/images/h1bemployersperstatemap.jpg&quot; class=&quot;fit image&quot;&gt;&lt;/a&gt; --&gt;
+
+&lt;p&gt;I got this idea from another &lt;a href=&quot;https://byrony.github.io/how-to-use-data-science-to-find-a-data-science-job-step-1-find-h1b-sponsors.html&quot;&gt;blog by Xiang Cao.&lt;/a&gt; The idea is to use the power of data analysis to find a job in data science. The question is where you can find a company that sponsors H1-B visas. Xiang Cao uses R to analyses the data. In this article I will use python + pandas to go through a similar analysis with the more recent &lt;a href=&quot;https://www.foreignlaborcert.doleta.gov/performancedata.cfm#dis&quot;&gt;H1-B disclosure data&lt;/a&gt; from the federal fiscal year 2018. For geovisualization of the data I will show two examples using Plotly. This will allow us to see the distribution of employers that sponsor H1-B visas on a US map.&amp;lt;/p&amp;gt;&lt;/p&gt;
 
 &lt;p&gt;Here I will not go through each step of exploring the data, but rather focus on the important steps that are required to get the results and plots we would like in th end.&lt;/p&gt;
 
@@ -310,8 +516,8 @@ Mean wages for Data Analysts:   $77357.74
 *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
 /*
 var disqus_config = function () {
-this.page.url = /2018/09/24/H1-B_blog.html;  // Replace PAGE_URL with your page's canonical URL variable
-this.page.identifier = /2018/09/24/H1-B_blog; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+this.page.url = /2018/10/09/H1-B_blog.html;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = /2018/10/09/H1-B_blog; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
 };
 */
 (function() { // DON'T EDIT BELOW THIS LINE
@@ -324,65 +530,61 @@ s.setAttribute('data-timestamp', +new Date());
 
 &lt;noscript&gt;Please enable JavaScript to view the &lt;a href=&quot;https://disqus.com/?ref_noscript&quot;&gt;comments powered by Disqus.&lt;/a&gt;&lt;/noscript&gt;
 </description>
-        <pubDate>Mon, 24 Sep 2018 00:00:00 -0400</pubDate>
-        <link>http://localhost:4000/2018/09/24/H1-B_blog.html</link>
-        <guid isPermaLink="true">http://localhost:4000/2018/09/24/H1-B_blog.html</guid>
+        <pubDate>Tue, 09 Oct 2018 00:00:00 -0400</pubDate>
+        <link>http://sebmerkt.github.io/2018/10/09/H1-B_blog.html</link>
+        <guid isPermaLink="true">http://sebmerkt.github.io/2018/10/09/H1-B_blog.html</guid>
         
         
       </item>
     
       <item>
-        <title>Etiam dapibus libero</title>
-        <description>&lt;p&gt;&lt;img src=&quot;/images/pic03.jpg&quot; class=&quot;fit image&quot; /&gt;
-Curabitur orci turpis, egestas placerat velit eget, dictum pellentesque ipsum. Suspendisse potenti. Suspendisse ac maximus arcu. Sed ut mattis ex. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum eleifend odio vitae varius aliquam. Quisque ac pretium nisi. Curabitur tempus urna ac ultrices commodo.&lt;/p&gt;
+        <title>VP1-Light: The Standalone ATLAS event display</title>
+        <description>&lt;p&gt;&lt;a class=&quot;image seventyfive&quot;&gt;&lt;img src=&quot;/images/vp1-light_1.png&quot; width=&quot;50&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
 
-&lt;p&gt;Curabitur iaculis est at mattis mattis. Aliquam erat volutpat. Etiam vitae cursus quam. Nunc ultricies nunc non lorem fringilla cursus. Etiam dapibus libero ac turpis accumsan pulvinar. Sed auctor velit eget mi consequat bibendum. Aliquam interdum purus eget metus pretium ullamcorper.&lt;/p&gt;
+&lt;h2&gt;The Task&lt;/h2&gt;
+&lt;p&gt;To join the ATLAS collaboration, every new member is required to work on a qualification task. These are usually tasks that involve working closely on the experiment, the ATLAS detector or the experiments software framework. My task was the development of a standalone version of the event display VP1. An event display in particle physics is an application that visualizes the physics that happens in the particle detector. The ATLAS experiment is one of the big, multi-purpose experiments located on the LHC, the Large Hadron Collider at CERN. At the LHC, protons are colliding at different interaction points, each one hosting a different experiment. The ATLAS detector measures the vast number of particles created from the colliding protons. VP1 visualizes these collisions, displaying all the different particles, interaction points and other physics objects.&lt;/p&gt;
 
-&lt;p&gt;Pellentesque feugiat ex non ligula commodo, eget varius tortor pellentesque. Pellentesque id tortor felis. Cras fringilla ante eget orci laoreet, non consequat urna suscipit. Pellentesque luctus ac nulla vitae porttitor. Proin sed tortor quis magna efficitur efficitur a id leo. Donec efficitur augue et laoreet maximus. Ut semper egestas porttitor. Phasellus sagittis vulputate sem at laoreet.&lt;/p&gt;
+&lt;p&gt;My task was to extract the visualization software that is integrated into into the ATLAS software framework and make it a standalone application that physicists can use on their personal computers. The ATLAS software framework only runs on a very limited selection of operating systems, namely Scientific Linux or CentOS. This was a great obstacle for many physicists who wanted to visualize their analysis data on their personal computers, running either macOS or a more common Linux distribution like Ubuntu.&lt;/p&gt;
 
-&lt;p&gt;Sed lobortis urna ut mi volutpat, sit amet euismod sapien tincidunt. Nulla facilisi. Pellentesque quis tempus neque. Mauris dictum ac sapien nec congue. In hac habitasse platea dictumst. Duis id pellentesque nisl. Morbi eget massa magna.&lt;/p&gt;
+&lt;!-- 
+&lt;h2&gt;The Technology&lt;/h2&gt;
+The ATLAS software framework which VP1 is a part of is mostly a collection of hundreds of C++ packages. VP1 itself consists of several packages each one fulfilling a different task in the visualization of the detector and physics objects, data access and the GUI. The GUI is based on Qt 5 and the visualization is based on Coin3D, an implementation of Open Inventor.
+ --&gt;
+
+&lt;h2&gt;The Visualization&lt;/h2&gt;
+&lt;p&gt;In the image above you can see a collision event where the two colliding protons created two top quarks that subsequently decayed into high energetic particle jets. Parts of the inner detector (purple), the calorimeters (blue) and the toroid magnets (gray) can also be seen. The whole image is a cut-out of the cylindrically shaped detector to give a perspective of the physics that’s happening on inside. The physics objects that are displayed are electrons (green lines) and other charged particles (orange lines) in the inner tracker. The tracker is the inner most part of the detector. It measures the bending tracks of the charged particles as they travel through the magnetic field. The green and yellow bars extending farther to the outside represent energy deposits in the calorimeter. The calorimeter measures the energy of the particles by absorbing most of the produced particles.&lt;/p&gt;
+
+&lt;!-- ATLAS offline software has recently gone open source. The GitLab repository for VP1-Light can be found &lt;a href=&quot;https://gitlab.cern.ch/atlas/athena/tree/master/Projects/VP1Light&quot; target=&quot;_blank&quot; &gt;here&lt;/a&gt;. --&gt;
+
+&lt;p&gt;Check out the &lt;a href=&quot;http://cds.cern.ch/record/2649301&quot; target=&quot;_blank&quot;&gt;CHEP 2018 proceedings&lt;/a&gt; to get some details on the newest developments in ATLAS standalone&lt;/p&gt;
+
+&lt;p&gt;Also check out the &lt;a href=&quot;http://atlas-vp1.web.cern.ch/atlas-vp1/home/&quot; target=&quot;_blank&quot;&gt;ATLAS VP1&lt;/a&gt; homepage for more info and news on VP1, the full event display and a full gallery of event displays.&lt;/p&gt;
+
+&lt;div id=&quot;disqus_thread&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = /2018/09/07/VP1-Light.html;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = /2018/09/07/VP1-Light; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+s.src = 'https://sebmerkt.disqus.com/embed.js';
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+&lt;/script&gt;
+
+&lt;noscript&gt;Please enable JavaScript to view the &lt;a href=&quot;https://disqus.com/?ref_noscript&quot;&gt;comments powered by Disqus.&lt;/a&gt;&lt;/noscript&gt;
 </description>
-        <pubDate>Tue, 17 Feb 2015 00:00:00 -0500</pubDate>
-        <link>http://localhost:4000/2015/02/17/Curabitur.html</link>
-        <guid isPermaLink="true">http://localhost:4000/2015/02/17/Curabitur.html</guid>
-        
-        
-      </item>
-    
-      <item>
-        <title>Suspendisse pellentesque</title>
-        <description>&lt;p&gt;&lt;img src=&quot;/images/pic01.jpg&quot; class=&quot;fit image&quot; /&gt;
-Suspendisse pellentesque mollis turpis, vitae ullamcorper arcu sagittis in. Pellentesque viverra, diam vel ultrices lobortis, urna diam efficitur diam, non ultricies enim massa et neque. Mauris lacinia purus nibh, ac consequat mi molestie ac. Suspendisse at sapien ac magna posuere imperdiet eget id nisi. Nulla facilisi. Pellentesque id magna eu sapien consectetur pulvinar nec eget massa. Nunc ut volutpat felis. Vestibulum pharetra ligula vel mattis aliquam. Etiam tempor vitae nulla nec euismod. Vivamus eget justo libero. Curabitur dictum, turpis vel porttitor semper, elit turpis vehicula nibh, quis mollis metus tortor at magna.&lt;/p&gt;
-
-&lt;p&gt;Maecenas posuere sodales magna id tincidunt. Nunc sapien ipsum, efficitur et mauris nec, tristique gravida leo. Donec at bibendum lectus, sit amet fringilla risus. Donec et justo mi. In risus risus, faucibus eget eros eget, tincidunt posuere purus. Maecenas porta lacus metus, nec varius enim egestas ac. In hac habitasse platea dictumst. Nullam a nisi nulla. Nam vel varius enim, sit amet fringilla massa. Proin vel aliquam felis, quis scelerisque arcu.&lt;/p&gt;
-
-&lt;p&gt;Sed consequat mi id malesuada efficitur. Vestibulum efficitur tortor ut dictum porta. Morbi dapibus viverra risus, et laoreet lorem commodo et. Donec hendrerit posuere magna a efficitur. Nullam euismod eget nulla eget iaculis. Donec porttitor faucibus porta. Morbi et risus dolor. Mauris venenatis sem id neque hendrerit ultrices.&lt;/p&gt;
-</description>
-        <pubDate>Fri, 06 Feb 2015 09:37:44 -0500</pubDate>
-        <link>http://localhost:4000/update/2015/02/06/welcome-to-jekyll.html</link>
-        <guid isPermaLink="true">http://localhost:4000/update/2015/02/06/welcome-to-jekyll.html</guid>
-        
-        
-        <category>update</category>
-        
-      </item>
-    
-      <item>
-        <title>Lorem</title>
-        <description>&lt;p&gt;&lt;img src=&quot;/images/pic02.jpg&quot; class=&quot;fit image&quot; /&gt;
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi cursus fringilla dui. Donec laoreet maximus elit. Mauris ullamcorper condimentum lobortis. Donec maximus, mi vitae iaculis placerat, ligula mi maximus lectus, ac varius mi nulla id neque. Quisque porta eros nisi, eu fringilla urna dictum vitae. Vestibulum id metus eu nisl sodales consectetur. Phasellus et ultrices lacus.&lt;/p&gt;
-
-&lt;p&gt;Curabitur orci turpis, egestas placerat velit eget, dictum pellentesque ipsum. Suspendisse potenti. Suspendisse ac maximus arcu. Sed ut mattis ex. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum eleifend odio vitae varius aliquam. Quisque ac pretium nisi. Curabitur tempus urna ac ultrices commodo.&lt;/p&gt;
-
-&lt;p&gt;Curabitur iaculis est at mattis mattis. Aliquam erat volutpat. Etiam vitae cursus quam. Nunc ultricies nunc non lorem fringilla cursus. Etiam dapibus libero ac turpis accumsan pulvinar. Sed auctor velit eget mi consequat bibendum. Aliquam interdum purus eget metus pretium ullamcorper.&lt;/p&gt;
-
-&lt;p&gt;Pellentesque feugiat ex non ligula commodo, eget varius tortor pellentesque. Pellentesque id tortor felis. Cras fringilla ante eget orci laoreet, non consequat urna suscipit. Pellentesque luctus ac nulla vitae porttitor. Proin sed tortor quis magna efficitur efficitur a id leo. Donec efficitur augue et laoreet maximus. Ut semper egestas porttitor. Phasellus sagittis vulputate sem at laoreet.&lt;/p&gt;
-
-&lt;p&gt;Sed lobortis urna ut mi volutpat, sit amet euismod sapien tincidunt. Nulla facilisi. Pellentesque quis tempus neque. Mauris dictum ac sapien nec congue. In hac habitasse platea dictumst. Duis id pellentesque nisl. Morbi eget massa magna.&lt;/p&gt;
-</description>
-        <pubDate>Fri, 30 Jan 2015 00:00:00 -0500</pubDate>
-        <link>http://localhost:4000/2015/01/30/Lorem.html</link>
-        <guid isPermaLink="true">http://localhost:4000/2015/01/30/Lorem.html</guid>
+        <pubDate>Fri, 07 Sep 2018 00:00:00 -0400</pubDate>
+        <link>http://sebmerkt.github.io/2018/09/07/VP1-Light.html</link>
+        <guid isPermaLink="true">http://sebmerkt.github.io/2018/09/07/VP1-Light.html</guid>
         
         
       </item>

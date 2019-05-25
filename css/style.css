@@ -1124,3 +1124,7 @@
 	 .bottom-three {
 		 margin-bottom: 3cm;
 	}
+
+	figcaption { 
+		display: block;
+	}

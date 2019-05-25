@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+    
+    <!--
+	Ion by TEMPLATED
+	templated.co @templatedco
+	Released for free under the Creative Commons Attribution 3.0 license (templated.co/license)
+-->
+<head>
+    <!-- Google Analytics -->
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-125852315-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-125852315-1');
+</script>
+
+    
+    <title>Exploring ATLAS Physics Data Sets in Python using uproot</title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <!--[if lte IE 8]><script src="js/html5shiv.js"></script><![endif]-->
+    <link rel="shortcut icon" type="image/png" href="/siteicon.png">
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/skel.min.js"></script>
+    <script src="/js/skel-layers.min.js"></script>
+    <script src="/js/init.js"></script>
+    <noscript>
+        <link rel="stylesheet" href="/css/skel.css" />
+        <link rel="stylesheet" href="/css/style.css" />
+        <link rel="stylesheet" href="/css/style-xlarge.css" />
+    </noscript>
+    <!-- <link rel="stylesheet" href="/monokai.css" /> -->
+    <link href="/css/syntax.css" rel="stylesheet" >
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+
+
+</head>
+
+
+	<body id="top">
+
+        <!-- Header -->
+<header id="header" class="skel-layers-fixed">
+    <h1><a href="/" class="site-title" >It's a data thing</a></h1>
+    <nav id="nav">
+        <ul>
+            <li><a href="/">Home</a></li>
+            <!-- <li><a href="/left-sidebar.html">Left Sidebar</a></li> -->
+            <!-- <li><a href="/right-sidebar.html">Right Sidebar</a></li> -->
+            <!-- <li><a href="/no-sidebar.html">No Sidebar</a></li> -->
+            <li><a href="/#eventsection">Events</a></li>
+            <li><a href="/blog.html">Blog</a></li>
+            <li><a href="/everyday_converter.html">Everyday Converter</a></li>
+            
+                  
+            
+                  
+            
+                  
+            
+                  
+            
+                  
+            
+                  
+            
+                  
+            
+                  
+            
+                  
+            
+                  
+            
+            <!-- <li><a href="#" class="button special">Sign Up</a></li> -->
+        </ul>
+    </nav>
+</header>
+
+        <div class="wrapper style1">
+    <article class="container">
+        <header class="major">
+            <h2 class="post-title">Exploring ATLAS Physics Data Sets in Python using uproot</h2>
+                <p class="post-meta">Apr 17, 2019</p>
+        </header>
+
+        <section class="post-content">
+            <!-- <a class="image right"><img src="/images/atlas-data.png" width="300"></a> -->
+
+<p>In this post I want to show you how python can be used for a physics data analysis instead of the more widely used ROOT. Even though ROOT has its advantages when it comes to processing large datasets on the computing grid, running it on your personal computer can often be tedious. Python gives you a verity of tool, helpful especially in the late analysis stage, e.g. for creating plots or tables.</p>
+
+<p>During CHEP 2018 Jim Pivarski gave a <a href="https://indico.cern.ch/event/587955/contributions/2937525/" target="_blank">talk</a> where he presented <a href="https://github.com/scikit-hep/uproot" target="_blank">uproot</a>, a python/numpy framework to read ROOT files. Naturally, I wanted to try it out myself.</p>
+
+<h2>Install uproot</h2>
+
+<p>To install uproot through pip you can do</p>
+
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>pip3 <span class="nb">install </span>uproot <span class="nt">--user</span>
+</code></pre></div></div>
+<p>Alternatively, check the GitHub page for other ways to install uproot.</p>
+
+<h2>Import a data set and explore its contents</h2>
+
+<p>After installing uproot we can easily import it in our python notebook. Loading the data works with the <code class="highlighter-rouge">uproot.open()</code> command. Once open, we can list the content of the ROOTDirectory. In our case, there is only one  TTree called <code class="highlighter-rouge">mini</code> in the ROOT file. The TTree is the actual data set that contains all the physics attributes of the data. In principle, a ROOTDirectory can consist several TTrees.</p>
+
+<p>The data we use here is a public data set from the <a href="http://opendata.atlas.cern/extendedanalysis/datasets.php" target="_blank">ATLAS open data</a> page. It not real data collected by the ATLAS detector, but simulated data generated with a Monte Carlo event generator. I chose for this example the t-channel top single top-quark data set. The top quark is the heaviest elementary particle known so far and has many interesting properties. It is also the basis of my work at CERN. However, you can feel free to explore other data sets as well.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">uproot</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">data</span><span class="o">=</span><span class="n">uproot</span><span class="o">.</span><span class="nb">open</span><span class="p">(</span><span class="s">"mc_110090.stop_tchan_top.root"</span><span class="p">)</span>
+<span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[b'mini;1']
+</code></pre></div></div>
+
+<p>As we can see, there is one data set in the ROOTDirectory called <code class="highlighter-rouge">mini</code>. Let’s extract the information from the data set. We store the TTree in variable called singletop_data, since we know the ROOT file contains data from single top physics. Again we can print the contents of the TTree. This will give us a list of all physics objects and their properties, like energy, transverse momentum, etc. from particles like leptons and jets and also information on the physics run, like run number and event number.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">singletop_data</span><span class="o">=</span><span class="n">data</span><span class="p">[</span><span class="s">'mini'</span><span class="p">]</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">print</span><span class="p">(</span><span class="n">singletop_data</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[b'runNumber', b'eventNumber', b'channelNumber', b'mcWeight', b'pvxp_n', b'vxp_z', b'scaleFactor_PILEUP', b'scaleFactor_ELE', b'scaleFactor_MUON', b'scaleFactor_BTAG', b'scaleFactor_TRIGGER', b'scaleFactor_JVFSF', b'scaleFactor_ZVERTEX', b'trigE', b'trigM', b'passGRL', b'hasGoodVertex', b'lep_n', b'lep_truthMatched', b'lep_trigMatched', b'lep_pt', b'lep_eta', b'lep_phi', b'lep_E', b'lep_z0', b'lep_charge', b'lep_type', b'lep_flag', b'lep_ptcone30', b'lep_etcone20', b'lep_trackd0pvunbiased', b'lep_tracksigd0pvunbiased', b'met_et', b'met_phi', b'jet_n', b'alljet_n', b'jet_pt', b'jet_eta', b'jet_phi', b'jet_E', b'jet_m', b'jet_jvf', b'jet_trueflav', b'jet_truthMatched', b'jet_SV0', b'jet_MV1']
+</code></pre></div></div>
+
+<p>To handle the data we put everything into a DataFrame. Each row of the DataFrame corresponds to one event, given by the <code class="highlighter-rouge">eventNumber</code>. Taking a closer look, we see that some of the features have lists as entries. For example, the <code class="highlighter-rouge">b'jet_pt'</code> has a list of jet pt values for each event, where each value corresponds to one jet in the event. The jet pt is the transverse momentum of a jet. This also tells us how many jets or other particles of a certain type are in an event.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="n">pd</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="n">np</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">df</span><span class="o">=</span><span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">singletop_data</span><span class="o">.</span><span class="n">arrays</span><span class="p">())</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="n">b</span><span class="s">'eventNumber'</span><span class="p">)</span>
+</code></pre></div></div>
+
+<h2>Do a simple analysis</h2>
+
+<p>At this point we are ready to analyze the data. To start, we can plot a histogram with the transverse momentum distribution of the jets. For that we first collect all jet momenta in a single list that we can then plot with matplotlib.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="n">plt</span>
+<span class="kn">import</span> <span class="nn">matplotlib.patches</span> <span class="k">as</span> <span class="n">mpatches</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">jet_pts</span><span class="o">=</span><span class="p">[]</span>
+<span class="k">for</span> <span class="n">idx</span><span class="p">,</span><span class="n">evt</span> <span class="ow">in</span> <span class="n">df</span><span class="p">[</span><span class="n">b</span><span class="s">'jet_pt'</span><span class="p">]</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+    <span class="k">for</span> <span class="n">pt</span> <span class="ow">in</span> <span class="n">evt</span><span class="p">:</span>
+        <span class="n">jet_pts</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">pt</span><span class="p">)</span>
+</code></pre></div></div>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">color_jet</span><span class="o">=</span><span class="s">'darkslateblue'</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">jet_pts</span><span class="p">)</span><span class="o">/</span><span class="mi">1000</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color_jet</span><span class="p">,</span> <span class="n">bins</span><span class="o">=</span><span class="mi">200</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'Transverse momentum [GeV]'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">'# of events'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">200</span><span class="p">)</span>
+<span class="n">patch_jet</span> <span class="o">=</span> <span class="n">mpatches</span><span class="o">.</span><span class="n">Patch</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">color_jet</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">'Jets'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="o">=</span><span class="p">[</span><span class="n">patch_jet</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p><br />
+<a class="image"><img src="/images/uproot_jet_pt.png" width="500" /></a>
+<br /></p>
+
+<p>Since we have all the data conveniently in a DataFrame we can also explore some more. For example we can determine what the ratio between electrons and muons in this run is. Both, electrons and muons are leptons and they are stored in the same feature. To separate them, we just loop over all leptons and sort them by their particle ID. A particle ID of 11 corresponds to an electron, an ID of 13 corresponds to a muon, This is the so called Monte Carlo numbering scheme. Since we are looking at single top production, there should only be one lepton in the event. Therefore we throw away all events with more or less than one lepton. These events are called background events, events that mimic the single top event, but actually have a different underlying physical process. In addition to the sorting, we also save the lepton energy.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">electrons</span><span class="o">=</span><span class="p">[]</span>
+<span class="n">muons</span><span class="o">=</span><span class="p">[]</span>
+<span class="k">for</span> <span class="n">idx</span><span class="p">,</span><span class="n">evt</span> <span class="ow">in</span> <span class="n">df</span><span class="p">[</span><span class="n">b</span><span class="s">'lep_type'</span><span class="p">]</span><span class="o">.</span><span class="n">iteritems</span><span class="p">():</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">evt</span><span class="p">)</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">lep</span><span class="o">=</span><span class="n">evt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">lep</span><span class="o">==</span><span class="mi">13</span><span class="p">:</span>
+            <span class="n">muons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">b</span><span class="s">'lep_E'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">elif</span> <span class="n">lep</span><span class="o">==</span><span class="mi">11</span><span class="p">:</span>
+            <span class="n">electrons</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="n">b</span><span class="s">'lep_E'</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+</code></pre></div></div>
+
+<p>Now we have the electrons and muons separated we can determine the ratio.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">print</span><span class="p">(</span><span class="s">"Ratio of electrons over muons: "</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="nb">round</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">electrons</span><span class="p">))</span><span class="o">/</span><span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">muons</span><span class="p">)),</span><span class="n">decimals</span><span class="o">=</span><span class="mi">3</span><span class="p">)))</span>
+</code></pre></div></div>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Ratio of electrons over muons: 1.053
+</code></pre></div></div>
+
+<p>As expected, the ratio is close to one, with a few more electrons. Finally, we can also plot the distribution of the electron and muon energies.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">color_el</span><span class="o">=</span><span class="s">'darkslateblue'</span>
+<span class="n">color_mu</span><span class="o">=</span><span class="s">'goldenrod'</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">hist</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">electrons</span><span class="p">)</span><span class="o">/</span><span class="mi">1000</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">muons</span><span class="p">)</span><span class="o">/</span><span class="mi">1000</span><span class="p">],</span> <span class="n">bins</span><span class="o">=</span><span class="mi">80</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">[</span><span class="n">color_el</span><span class="p">,</span><span class="n">color_mu</span><span class="p">],</span> <span class="n">stacked</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">'Lepton energy [GeV]'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">'# of events'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">400</span><span class="p">)</span>
+<span class="n">patch_el</span> <span class="o">=</span> <span class="n">mpatches</span><span class="o">.</span><span class="n">Patch</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">color_el</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">'Electrons'</span><span class="p">)</span>
+<span class="n">patch_mu</span> <span class="o">=</span> <span class="n">mpatches</span><span class="o">.</span><span class="n">Patch</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">color_mu</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">'Muons'</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="o">=</span><span class="p">[</span><span class="n">patch_el</span><span class="p">,</span><span class="n">patch_mu</span><span class="p">])</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</code></pre></div></div>
+
+<p><a class="image"><img src="/images/uproot_lepton_energy.png" width="500" /></a></p>
+
+<div id="disqus_thread"></div>
+<script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = /2019/04/17/uproot.html;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = /2019/04/17/uproot; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+s.src = 'https://sebmerkt.disqus.com/embed.js';
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+        </section>
+        
+        <footer>
+            
+            <a href="/2019/02/08/First_Kaggle.html" class="float-left">&larr; Previous post</a> 
+            
+        </footer>
+
+    </article>
+
+</div>
+
+
+        <!-- Footer -->
+<footer id="footer">
+    <div class="container">
+        <div class="row double">
+            <div class="6u">
+                <div class="row collapse-at-2">
+                    <!-- <div class="6u">
+                        <h3>Accumsan</h3>
+                        <ul class="alt">
+                            <li><a href="#">Nascetur nunc varius</a></li>
+                            <li><a href="#">Vis faucibus sed tempor</a></li>
+                            <li><a href="#">Massa amet lobortis vel</a></li>
+                            <li><a href="#">Nascetur nunc varius</a></li>
+                        </ul>
+                    </div> -->
+                    <div class="6u">
+                        <h3>Physics</h3>
+                        <ul class="alt">
+                            <li><a href="http://www.pitt.edu" target="_blank"><span title="The University of Pittsburgh website.">University of Pittsburgh</span></a></li>
+                            <li><a href="http://www.physicsandastronomy.pitt.edu/" target="_blank"><span title="The Department of Physics & Astronomy of the University of Pittsburgh.">Dept. of
+                                Physics & Astronomy</span>
+                                </a></li>
+                            <li><a href="https://atlas.cern/" target="_blank"><span title="The ATLAS experiment at the Large Hadron Collider at CERN, Geneva.">ATLAS Experiment</span></a></li>
+                            <li><a href="http://atlas-vp1.web.cern.ch/atlas-vp1/home/" target="_blank"><span title="The ATLAS 3D event display VP1 shows images of particle collisions inside the ATLAS detector.">ATLAS Event Display VP1</span></a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="6u">
+                <h2>About the author</h2>
+                <p>My name is Sebastian Merkt and I am currently a physics graduate student at the University of Pittsburgh. I work in the field of elementary particle physics and I am a member of the ATLAS collaboration.</p>
+                <ul class="icons">
+                    <!-- <li><a href="#" class="icon fa-twitter"><span class="label">Twitter</span></a></li>
+                    <li><a href="#" class="icon fa-facebook"><span class="label">Facebook</span></a></li>
+                    <li><a href="#" class="icon fa-instagram"><span class="label">Instagram</span></a></li>
+                    <li><a href="#" class="icon fa-linkedin"><span class="label">LinkedIn</span></a></li> -->
+                    <li><a href="https://github.com/sebmerkt" target="_blank" class="icon fa-github"><span class="label">Github</span></a></li>
+                    <li><a href="https://www.kaggle.com/samiamami" target="_blank" class="fab fa-kaggle"></a></li>
+                    <li><a href="https://www.linkedin.com/in/sebastian-merkt" target="_blank" class="fab fa-linkedin"></a></li>
+                </ul>
+            </div>
+        </div>
+        <ul class="copyright">
+            <li>&copy; Sebastian Merkt. All rights reserved.</li>
+            <li>Design: <a href="http://templated.co">TEMPLATED</a></li>
+            <!-- <li>Images: <a href="http://unsplash.com">Unsplash</a></li> -->
+            <li>Jekyll Template: <a href="http://cloudcannon.com">Cloud Cannon</a></li>
+        </ul>
+    </div>
+</footer>
+
+
+    </body>
+
+</html>

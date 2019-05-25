@@ -20,7 +20,7 @@
 </script>
 
     
-    <title>Everyday Converter: My first Android App</title>
+    <title>My First Kaggle Kernel</title>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <meta name="description" content="" />
     <meta name="keywords" content="" />
@@ -86,32 +86,33 @@
         <div class="wrapper style1">
     <article class="container">
         <header class="major">
-            <h2 class="post-title">Everyday Converter: My first Android App</h2>
-                <p class="post-meta">Oct 9, 2018</p>
+            <h2 class="post-title">My First Kaggle Kernel</h2>
+                <p class="post-meta">Feb 8, 2019</p>
         </header>
 
         <section class="post-content">
-            <p><a class="image right"><img src="/images/everyday_conv_screenshot2_framed.png" width="300" /></a></p>
+            <p><a class="image seventyfive"><img src="/images/pubg.jpg" width="fit image" /></a></p>
 
-<h2>Why a converter app</h2>
-<p>Coming from Germany I grew up with the metric system. Travel distances are measured in kilometers, a persons weight is given in kilograms. A few years ago I moved to the US and I realized that it was sometimes difficult to figure out what a number meant when it was given in an ‘unknown’ unit. When you go to a bar in Germany and the ask you whether you want a 0.33L or 0.5L beer I knew what they were asking me. In the US, I was confronted with the choice of a 12oz or 16oz beer and I had no idea what either one would get me. So I got the idea to have a converter always handy on my wrist that allows me to quickly convert between US and metric units without even taking my phone out of my pocket.</p>
+<p>PlayerUnknown’s Battlegrounds is currently one of the most popular Battle Royal type shooters with Millions of players worldwide. This popularity also means that there is a huge amount of data available. The data used in the Kaggle kernel competition ‘PUBG Finish Placement Prediction’ consisted of match statistics data taken from the official PUBG API. The goal of the competition was to predict the label <code class="highlighter-rouge">winPlacePerc</code>, that is the percentage rank a player or team achieved in a match. The features were basic game stats such as <code class="highlighter-rouge">kills</code>, <code class="highlighter-rouge">heals</code>, <code class="highlighter-rouge">walkDistance</code>, <code class="highlighter-rouge">damageDealt</code>, and so on.</p>
 
-<h2>Getting to grips with Android</h2>
-<p>Before I started to develop my first Android apps the whole endeavor seemed a bit overpowering. Having no idea where to begin I started googling the internet and soon realized that it might not be as difficult as I first imagined. Setting up the Android development environment on my laptop, getting the apps to work on the phone, etc was straight forward and there are many helpful tutorials and instructions online. After I set up my development environment, that task of app development began. At first it was mostly just taking some online courses at Udacity, which proved to be very instructive, and developing some simple apps just to test a new feature I just learned. However, developing an Android app did not just mean to learn how to use <a href="https://developer.android.com/studio" target="_blank">Android Studio</a>, but also to learn a new programming language, Java. This was my first encounter with the language so far but it was actually not that hard to pick up on the go since the Java syntax is very similar to the C/C++, which I am used to.</p>
+<p>Since the percentage rank is defined for a individual match, my idea was to train a neural net incrementally, one match at a time, and then make the predictions in the same way. The scikit-learn framework provides a multi-layer perceptron (MLP) regressor</p>
 
-<!-- <a class="image right"><img src="/images/everyday_conv_wear_conversion.png" width="200"></a> -->
-<h2>Designing the UI</h2>
-<p>The UI was designed in such a way as to not overload the user with too much information. The amount of available unit categories was kept at a minimum with only those units that are relevant for everyday life. Scientific units such as force or power are rarely used on a regular basis and if so, than a quick Google search still gives the answer. For this reason the main UI consists of only a few buttons that will guide the user straight to the respective conversion table. The user can then enter a number and choose the input unit. This is the unit that should be converted. Subsequently, a table of all available output units and their respective values are shown. For convenience, a few settings are available, such as changing the default input unit to US or metric. This is useful when the user primarily wants to convert units from US to metric or vice versa. Also the display of the results can be modified by changing how many digits are shown or whether the full unit name is displayed or just the unit abbreviation. 
-<br />
-<br />
-Besides designing the app layout, I also had to design new icons to be used as the apps main icon but also for the different unit buttons and so on. This was done using  <a href="https://inkscape.org/" target="_blank">Inkscape</a>, a vector graphics editor for Linux. Just as the UI layout I kept the icons as simple as possible so that the UI does not get got busy and confusing for the user.</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">sklearn</span><span class="o">.</span><span class="n">neural_network</span><span class="o">.</span><span class="n">MLPRegressor</span> 
+</code></pre></div></div>
+<p>which can be trained incrementally my calling the method</p>
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">partial_fit</span><span class="p">(</span><span class="n">x_train</span><span class="p">,</span> <span class="n">y_train</span><span class="p">)</span>
+</code></pre></div></div>
 
-<p>For a detailed description of the apps, check out the <a href="/everyday_converter.html">Everyday Converter user guide</a>.</p>
+<p>To feed the data to the model, a few modifications were in order. For one, the data was divided in different match types, defined by the features <code class="highlighter-rouge">matchType</code>. Available match types were solo, duo team and crash, where the first three types correspond to the size of the teams in a match (1 player, two players or four player) and the last type is a special event type of match where player do not use fire arms, but instead use melee weapons and vehicles to kill each other. Of course not all features were equally important in all match types, e.g. the feature <code class="highlighter-rouge">revives</code> had little impact on the <code class="highlighter-rouge">winPlacePerc</code> in the solo player matches. The respective features were then removed in the data set of that specific match type.</p>
 
-<h2>Testing on different devices</h2>
-<p>Besides my current and former smartphone I could also test my applications on an an Amazon Fire tablet (which is honestly not very useful for anything else really). For the Wear OS application I use my Fossil Q Explorist. In addition you get the possibility to set up a whole line of virtual devices within Android Studio. This provides a convenient way of testing your app on a verity of different devices with all kinds of different settings, screen sizes, resolutions and so on.</p>
+<p><a class="image right"><img src="/images/PUBG_corr.png" width="700" /></a>
+Once the data was sorted according to the match type, the features needed to be transformed into a form the MLP regressor can handle. In the first step, I reduced the number of features. The data set contains many numerical features, so my idea was to use a PCA analysis to get the main components and only fit on those. However, the partial fit method in the MLP regressor has a bug that prevented me from reducing the number of components. Therefore I chose to manually remove in each match type the features that had the least correlation with <code class="highlighter-rouge">winPlacePerc</code> and use PCA on the remaining ones. Finally, since I used a neural net, the data needed  scaled. For this I chose the sk-learn<code class="highlighter-rouge">MinMaxScaler</code>. In the picture you can see a sample of the correlation matrix for the solo matches. As you can see, the feature <code class="highlighter-rouge">roadKills</code> has only a tiny correlation with <code class="highlighter-rouge">winPlacePerc</code> and is therefore removed. Large correlation, and therefore large impact on the <code class="highlighter-rouge">winPlacePerc</code> came from the features <code class="highlighter-rouge">boosts</code>, <code class="highlighter-rouge">killPlace</code> and <code class="highlighter-rouge">walkDistance</code>. At first glance walk distance does not seem very important for winning. However, once you realize that walk distance is also correlated to the time a player stayed in a match, it’s clear that players that had large walk distances survived for longer and were therefore placed higher in the final score.</p>
 
-<p>Check out <a href="https://github.com/sebmerkt/EverydayConverter" target="_blank">Everyday Converter</a> on github or get <a href="https://play.google.com/store/apps/details?id=io.github.sebmerkt.everydayconverter" target="_blank">Everyday Converter</a> now in the Google Play Store.</p>
+<p>In the last step before the training, I filtered out all matches that had a total of only one or two player. The reason is, that the outcome of these matches can be predicted ‘manually’. Matches with only one player automatically assign the player a <code class="highlighter-rouge">winPlacePerc</code> of 0.0. For matches with a total of two player, the player with a lower <code class="highlighter-rouge">killPlace</code> had a <code class="highlighter-rouge">winPlacePerc</code> of 1.0 in 99% of the training samples.</p>
+
+<p>The remaining matches were then fed into the neural net. To evaluate the performance, I used a k-fold type cross validation on random subsets of the training data. The resulting evaluation mean absolute error was 0.06078. Compared to the Kernel’s Public Score of 0.05489, it did a bit better on the test data, than it did on the training data.</p>
+
+<p>Check out my <a href="https://www.kaggle.com/samiamami/one-match-at-a-time">Kaggle Kernel</a> to get the details.</p>
 
 <div id="disqus_thread"></div>
 <script>
@@ -121,8 +122,8 @@ Besides designing the app layout, I also had to design new icons to be used as t
 *  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
 /*
 var disqus_config = function () {
-this.page.url = /2018/10/09/Android.html;  // Replace PAGE_URL with your page's canonical URL variable
-this.page.identifier = /2018/10/09/Android; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+this.page.url = /2019/02/08/First_Kaggle.html;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = /2019/02/08/First_Kaggle; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
 };
 */
 (function() { // DON'T EDIT BELOW THIS LINE
@@ -139,9 +140,9 @@ s.setAttribute('data-timestamp', +new Date());
         
         <footer>
             
-            <a href="/2018/10/09/H1-B_blog.html" class="float-left">&larr; Previous post</a> 
+            <a href="/2018/10/09/Android.html" class="float-left">&larr; Previous post</a> 
             
-            <a href="/2019/02/08/First_Kaggle.html" class="float-right">Next post &rarr;</a> 
+            <a href="/2019/04/17/uproot.html" class="float-right">Next post &rarr;</a> 
         </footer>
 
     </article>

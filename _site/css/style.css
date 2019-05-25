@@ -470,11 +470,19 @@
 			display: block;
 		}
 
+		.image imgcen {
+			display: block;
+			margin-left: auto;
+			margin-right: auto;
+			width: 70%;
+		}
+
 		.image.left {
 			float: left;
 			padding: 0 1.5em 1em 0;
 			top: 0.25em;
 		}
+
 
 		.image.right {
 			float: right;
@@ -1108,3 +1116,11 @@
 		#footer .icons a {
 			color: #bbb;
 		}
+
+
+		.bottom-two {
+			margin-bottom: 2cm;
+	 }
+	 .bottom-three {
+		 margin-bottom: 3cm;
+	}

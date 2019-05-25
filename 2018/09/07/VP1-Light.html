@@ -9,7 +9,18 @@
 <head>
     <!-- Google Analytics -->
     
-    <title>Lorem</title>
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-125852315-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-125852315-1');
+</script>
+
+    
+    <title>VP1-Light: The Standalone ATLAS event display</title>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <meta name="description" content="" />
     <meta name="keywords" content="" />
@@ -65,6 +76,8 @@
             
                   
             
+                  
+            
             <!-- <li><a href="#" class="button special">Sign Up</a></li> -->
         </ul>
     </nav>
@@ -73,28 +86,60 @@
         <div class="wrapper style1">
     <article class="container">
         <header class="major">
-            <h2 class="post-title">Lorem</h2>
-                <p class="post-meta">Jan 30, 2015</p>
+            <h2 class="post-title">VP1-Light: The Standalone ATLAS event display</h2>
+                <p class="post-meta">Sep 7, 2018</p>
         </header>
 
         <section class="post-content">
-            <p><img src="/images/pic02.jpg" class="fit image" />
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi cursus fringilla dui. Donec laoreet maximus elit. Mauris ullamcorper condimentum lobortis. Donec maximus, mi vitae iaculis placerat, ligula mi maximus lectus, ac varius mi nulla id neque. Quisque porta eros nisi, eu fringilla urna dictum vitae. Vestibulum id metus eu nisl sodales consectetur. Phasellus et ultrices lacus.</p>
+            <p><a class="image seventyfive"><img src="/images/vp1-light_1.png" width="50" /></a></p>
 
-<p>Curabitur orci turpis, egestas placerat velit eget, dictum pellentesque ipsum. Suspendisse potenti. Suspendisse ac maximus arcu. Sed ut mattis ex. Pellentesque habitant morbi tristique senectus et netus et malesuada fames ac turpis egestas. Vestibulum eleifend odio vitae varius aliquam. Quisque ac pretium nisi. Curabitur tempus urna ac ultrices commodo.</p>
+<h2>The Task</h2>
+<p>To join the ATLAS collaboration, every new member is required to work on a qualification task. These are usually tasks that involve working closely on the experiment, the ATLAS detector or the experiments software framework. My task was the development of a standalone version of the event display VP1. An event display in particle physics is an application that visualizes the physics that happens in the particle detector. The ATLAS experiment is one of the big, multi-purpose experiments located on the LHC, the Large Hadron Collider at CERN. At the LHC, protons are colliding at different interaction points, each one hosting a different experiment. The ATLAS detector measures the vast number of particles created from the colliding protons. VP1 visualizes these collisions, displaying all the different particles, interaction points and other physics objects.</p>
 
-<p>Curabitur iaculis est at mattis mattis. Aliquam erat volutpat. Etiam vitae cursus quam. Nunc ultricies nunc non lorem fringilla cursus. Etiam dapibus libero ac turpis accumsan pulvinar. Sed auctor velit eget mi consequat bibendum. Aliquam interdum purus eget metus pretium ullamcorper.</p>
+<p>My task was to extract the visualization software that is integrated into into the ATLAS software framework and make it a standalone application that physicists can use on their personal computers. The ATLAS software framework only runs on a very limited selection of operating systems, namely Scientific Linux or CentOS. This was a great obstacle for many physicists who wanted to visualize their analysis data on their personal computers, running either macOS or a more common Linux distribution like Ubuntu.</p>
 
-<p>Pellentesque feugiat ex non ligula commodo, eget varius tortor pellentesque. Pellentesque id tortor felis. Cras fringilla ante eget orci laoreet, non consequat urna suscipit. Pellentesque luctus ac nulla vitae porttitor. Proin sed tortor quis magna efficitur efficitur a id leo. Donec efficitur augue et laoreet maximus. Ut semper egestas porttitor. Phasellus sagittis vulputate sem at laoreet.</p>
+<!-- 
+<h2>The Technology</h2>
+The ATLAS software framework which VP1 is a part of is mostly a collection of hundreds of C++ packages. VP1 itself consists of several packages each one fulfilling a different task in the visualization of the detector and physics objects, data access and the GUI. The GUI is based on Qt 5 and the visualization is based on Coin3D, an implementation of Open Inventor.
+ -->
 
-<p>Sed lobortis urna ut mi volutpat, sit amet euismod sapien tincidunt. Nulla facilisi. Pellentesque quis tempus neque. Mauris dictum ac sapien nec congue. In hac habitasse platea dictumst. Duis id pellentesque nisl. Morbi eget massa magna.</p>
+<h2>The Visualization</h2>
+<p>In the image above you can see a collision event where the two colliding protons created two top quarks that subsequently decayed into high energetic particle jets. Parts of the inner detector (purple), the calorimeters (blue) and the toroid magnets (gray) can also be seen. The whole image is a cut-out of the cylindrically shaped detector to give a perspective of the physics that’s happening on inside. The physics objects that are displayed are electrons (green lines) and other charged particles (orange lines) in the inner tracker. The tracker is the inner most part of the detector. It measures the bending tracks of the charged particles as they travel through the magnetic field. The green and yellow bars extending farther to the outside represent energy deposits in the calorimeter. The calorimeter measures the energy of the particles by absorbing most of the produced particles.</p>
+
+<!-- ATLAS offline software has recently gone open source. The GitLab repository for VP1-Light can be found <a href="https://gitlab.cern.ch/atlas/athena/tree/master/Projects/VP1Light" target="_blank" >here</a>. -->
+
+<p>Check out the <a href="http://cds.cern.ch/record/2649301" target="_blank">CHEP 2018 proceedings</a> to get some details on the newest developments in ATLAS standalone</p>
+
+<p>Also check out the <a href="http://atlas-vp1.web.cern.ch/atlas-vp1/home/" target="_blank">ATLAS VP1</a> homepage for more info and news on VP1, the full event display and a full gallery of event displays.</p>
+
+<div id="disqus_thread"></div>
+<script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = /2018/09/07/VP1-Light.html;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = /2018/09/07/VP1-Light; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+s.src = 'https://sebmerkt.disqus.com/embed.js';
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
 
         </section>
         
         <footer>
             
             
-            <a href="/update/2015/02/06/welcome-to-jekyll.html" class="float-right">Next post &rarr;</a> 
+            <a href="/2018/10/09/H1-B_blog.html" class="float-right">Next post &rarr;</a> 
         </footer>
 
     </article>
@@ -132,7 +177,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi cursus fringilla 
             </div>
             <div class="6u">
                 <h2>About the author</h2>
-                <p>My name is Sebastian Merkt and I am currently a physics graduate student at the University of Pittsburgh. I work in the field of elementary particle physics and I am a member of the ATLAS experiment.</p>
+                <p>My name is Sebastian Merkt and I am currently a physics graduate student at the University of Pittsburgh. I work in the field of elementary particle physics and I am a member of the ATLAS collaboration.</p>
                 <ul class="icons">
                     <!-- <li><a href="#" class="icon fa-twitter"><span class="label">Twitter</span></a></li>
                     <li><a href="#" class="icon fa-facebook"><span class="label">Facebook</span></a></li>
@@ -140,6 +185,7 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Morbi cursus fringilla 
                     <li><a href="#" class="icon fa-linkedin"><span class="label">LinkedIn</span></a></li> -->
                     <li><a href="https://github.com/sebmerkt" target="_blank" class="icon fa-github"><span class="label">Github</span></a></li>
                     <li><a href="https://www.kaggle.com/samiamami" target="_blank" class="fab fa-kaggle"></a></li>
+                    <li><a href="https://www.linkedin.com/in/sebastian-merkt" target="_blank" class="fab fa-linkedin"></a></li>
                 </ul>
             </div>
         </div>
