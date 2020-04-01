@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html>
+    
+    <!--
+	Ion by TEMPLATED
+	templated.co @templatedco
+	Released for free under the Creative Commons Attribution 3.0 license (templated.co/license)
+-->
+<head>
+    <!-- Google Analytics -->
+    
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-125852315-1"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-125852315-1');
+</script>
+
+    
+    <title>Ride-Share-Compare - Your Ride On Your Terms</title>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <!--[if lte IE 8]><script src="js/html5shiv.js"></script><![endif]-->
+    <link rel="shortcut icon" type="image/png" href="/siteicon.png">
+    <script src="/js/jquery.min.js"></script>
+    <script src="/js/skel.min.js"></script>
+    <script src="/js/skel-layers.min.js"></script>
+    <script src="/js/init.js"></script>
+    <noscript>
+        <link rel="stylesheet" href="/css/skel.css" />
+        <link rel="stylesheet" href="/css/style.css" />
+        <link rel="stylesheet" href="/css/style-xlarge.css" />
+    </noscript>
+    <!-- <link rel="stylesheet" href="/monokai.css" /> -->
+    <link href="/css/syntax.css" rel="stylesheet" >
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+
+
+</head>
+
+
+	<body id="top">
+
+        <!-- Header -->
+<header id="header" class="skel-layers-fixed">
+    <h1><a href="/" class="site-title" >It's a data thing</a></h1>
+    <nav id="nav">
+        <ul>
+            <li><a href="/">Home</a></li>
+            <!-- <li><a href="/left-sidebar.html">Left Sidebar</a></li> -->
+            <!-- <li><a href="/right-sidebar.html">Right Sidebar</a></li> -->
+            <!-- <li><a href="/no-sidebar.html">No Sidebar</a></li> -->
+            <li><a href="/#eventsection">Events</a></li>
+            <li><a href="/blog.html">Blog</a></li>
+            <li><a href="/everyday_converter.html">Everyday Converter</a></li>
+            
+                  
+            
+                  
+            
+                  
+            
+                  
+            
+                  
+            
+                  
+            
+                  
+            
+                  
+            
+                  
+            
+                  
+            
+            <!-- <li><a href="#" class="button special">Sign Up</a></li> -->
+        </ul>
+    </nav>
+</header>
+
+        <div class="wrapper style1">
+    <article class="container">
+        <header class="major">
+            <h2 class="post-title">Ride-Share-Compare - Your Ride On Your Terms</h2>
+                <p class="post-meta">Apr 1, 2020</p>
+        </header>
+
+        <section class="post-content">
+            <h1 id="insight">Insight</h1>
+
+<p>What is Insight? <a href="https://insightfellows.com/">Insight</a> is a program that helps academics and other highly skilled individuals to transition into other, data related fields. It consists of a 7 week session in which the Insight fellows work on building their own projects, interview preparation and improving their coding skills. The projects are then presented to industry representatives to give the fellows a direct introduction to companies and their hiring teams. For my Insight Data Engineering project I developed an ETL pipeline for a platform that lets users compare different ride-share options.</p>
+
+<h1 id="introduction">Introduction</h1>
+
+<p>Ride-share providers like Lyft and Uber are getting more and more popular. As the market grows, more ride-share and mobility providers join this trend. Ride-share users want to be able to compare different providers according to their current needs without checking each and every app. Whether they need their ride to arrive fast or be cheap, Ride-Share-Compare will give users all the information to make an informed decision.</p>
+
+<p><a class="image seventyfive"><img src="/images/ride-share-compare-application.png" width="fit image" /></a></p>
+
+<p>The Ride-Share-Compare user interface allows the user the enter their pickup location. The closest available rides are then displayed around the user’s location. Unfortunately, the data does not provide the ride’s current locations, only the pick-up and drop-off locations. Therefore, available rides here means are all rides that had a recent drop-off close to the user location. Selecting individual rides shows additional information about the expected fare per distance and the distance of the ride from the user’s location. The expected fare is calculated as the fare per distance from the previous ride and the distance of the ride from the user’s location is the straight line connecting the two points.</p>
+
+<p>The data used for this project was the New York City taxi dataset, since real ride-share data is hard to come by. The dataset is published by the <a href="https://www1.nyc.gov/site/tlc/about/tlc-trip-record-data.page">NYC Taxi and Limousine Commission (TLC)</a>. The data is also available on Amazon S3 as a <a href="https://registry.opendata.aws/nyc-tlc-trip-records-pds">public dataset</a>. Using a pre-existing dataset instead of real-time data also allows for the simulation of an evolving data schema (see below for more information). In addition, New York Citi Bike data is used to add more variety to the data and available rides. This data is published by <a href="https://www.citibikenyc.com/system-data">Citi Bike</a>.</p>
+
+<p>Early NYC taxi data provided the taxi location in the form of geographical coordinates. Therefore, these rides are displayed as colored dots on the map. Newer taxi data only provides a location ID that corresponds to a neighborhood. Therefore, for the newer taxi data, instead of showing a dot on the map, the neighborhood in which the ride currently is is highlighted and a mouse-over reveals the number of available rides in that neighborhood. Further, Citi Bike data is displayed as bicycles on the map. The locations correspond to the location of the bike station where the bike has been last dropped off.</p>
+
+<h1 id="architecture">Architecture</h1>
+
+<p><a class="image seventyfive"><img src="/images/ride-share-compare-pipeline.png" width="fit image" /></a></p>
+
+<p>The data resides in a Amazon S3 bucket from where it is streamed into Apache Kafka. A Confluent Kafka cluster is set up on 4 Amazon EC2 nodes. The cluster consists of 4 Zookeepers and Kafka Brokers. In addition, a schema registry is configured that handles the evolution of the data schema. Avro is chosen as a serialization format to work with the schema registry. The ride-share data evolves over time. New versions of the Kafka applications account for the change in the data’s schema. In order to not cause downtime of the pipeline, the update to newer code versions needs to happen during production time. Confluent Kafka uses a schema registry that allows the evolution of the data schema. Adding default values to the data schema allows for full backward and forward compatibility between old and new versions of the Kafka applications. These versions can then run in simultaneously and process and consume messages of all schema versions.</p>
+
+<p>A PostGIS server resides on an additional EC2 node. PostGIS was chosen to allow for geographic queries of the ride locations. This allows to filter the data by proximity of a users position. A trade-off had to be made here since only one PostGIS database is used for storing the data. This is sufficient for storing the amount of incoming data in this test version. For an increasing number of ride-share providers and when including locations other than just New York City the database will not be able to handle the input. In this case the data should most likely not be stored in a SQL database like PostGIS for permanent storage, but rather saved in a NoSQL database.</p>
+
+<p>The Plotly Dash web application is hosted on another EC2 node. Dash was chosen since it easily integrates Mapbox. Custom Mapbox layers display the different New York City neighborhoods used in later versions of the NYC TLC dataset. Geocoding of the user’s address is done by a simple call to the OpenStreetMap geocoder API.</p>
+
+<h1 id="schema-evolution">Schema evolution</h1>
+
+<p><a class="image right">
+    <img src="/images/schema-registry-and-kafka.png" width="500" /> 
+</a>
+In a streaming application the incoming data might evolve over time. For example, early versions of the ride-share data might include a field <code class="highlighter-rouge">fare</code> for the ride’s fare amount. In later versions of the data the fare amount might be sub-divided into a <code class="highlighter-rouge">base fare</code> and <code class="highlighter-rouge">surcharge</code> amount. If a new version of a Kafka consumer that was written for the later data schema tries to read data from the earlier schema, this consumer shouldn’t break because it is missing the two additional fields. For this reason, the <a href="https://docs.confluent.io/current/schema-registry/index.html">Confluent Schema Registry</a> is used, which stores all versions of a schema and the Kafka applications can pull the correct schema version that corresponds to the message’s data they currently process, as shown in the figure on the right (and Confluent website). For full forward and backward compatibility, all fields in the schema need to have a default value. Then, if e.g. a consumer gets data from a schema version that misses a field the consumer expects, it can simply use the default value. Deploying a Kafka cluster with a fully forward and backward compatible schema registry allows for a rolling deployment of the pipeline. If a new schema version comes in, all Kafka applications can be gradually updated on the fly as shown in the images below. Due to the full compatibility mode, both old and new versions of the Kafka producers and consumers can run in parallel, processing data from different schema versions. This assures that the pipeline stays online during updates and all services remain available to the users.</p>
+
+<div class="slideshow-container">
+  <div class="mySlides1">
+      <img src="/images/rolling_deployment_1.png" style="width:100%" />
+  </div>
+
+  <div class="mySlides1">
+    <img src="/images/rolling_deployment_2.png" style="width:100%" />
+  </div>
+
+  <div class="mySlides1">
+    <img src="/images/rolling_deployment_3.png" style="width:100%" />
+  </div>
+
+  <div class="mySlides1">
+    <img src="/images/rolling_deployment_4.png" style="width:100%" />
+  </div>
+
+  <a class="prev" onclick="plusSlides(-1, 0)">&#10094;</a>
+  <a class="next" onclick="plusSlides(1, 0)">&#10095;</a>
+
+</div>
+
+<p>Check out the project on <a href="https://github.com/sebmerkt/ride-share-compare">github</a>.</p>
+
+<script>
+var slideIndex = [1,1];
+var slideId = ["mySlides1"]
+showSlides(1, 0);
+showSlides(1, 1);
+
+function plusSlides(n, no) {
+  showSlides(slideIndex[no] += n, no);
+}
+
+function showSlides(n, no) {
+  var i;
+  var x = document.getElementsByClassName(slideId[no]);
+  if (n > x.length) {slideIndex[no] = 1}    
+  if (n < 1) {slideIndex[no] = x.length}
+  for (i = 0; i < x.length; i++) {
+     x[i].style.display = "none";  
+  }
+  x[slideIndex[no]-1].style.display = "block";  
+}
+</script>
+
+<div id="disqus_thread"></div>
+<script>
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = /2020/04/01/ride-share-compare.html;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = /2020/04/01/ride-share-compare; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+s.src = 'https://sebmerkt.disqus.com/embed.js';
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+</script>
+
+<noscript>Please enable JavaScript to view the <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+
+        </section>
+        
+        <footer>
+            
+            <a href="/2019/04/17/uproot.html" class="float-left">&larr; Previous post</a> 
+            
+        </footer>
+
+    </article>
+
+</div>
+
+
+        <!-- Footer -->
+<footer id="footer">
+    <div class="container">
+        <div class="row double">
+            <div class="6u">
+                <div class="row collapse-at-2">
+                    <!-- <div class="6u">
+                        <h3>Accumsan</h3>
+                        <ul class="alt">
+                            <li><a href="#">Nascetur nunc varius</a></li>
+                            <li><a href="#">Vis faucibus sed tempor</a></li>
+                            <li><a href="#">Massa amet lobortis vel</a></li>
+                            <li><a href="#">Nascetur nunc varius</a></li>
+                        </ul>
+                    </div> -->
+                    <div class="6u">
+                        <h3>Data Engineering</h3>
+                        <ul class="alt">
+                            <li><a href="https://insightfellows.com/" target="_blank"><span title="Insight Data Science website">Insight Data Science</span></a></li>
+                        </ul>
+                        <h3>Physics</h3>
+                        <ul class="alt">
+                            <li><a href="http://www.physicsandastronomy.pitt.edu/" target="_blank"><span title="The Department of Physics & Astronomy of the University of Pittsburgh.">Dept. of
+                                Physics & Astronomy</span>
+                                </a></li>
+                            <li><a href="https://atlas.cern/" target="_blank"><span title="The ATLAS experiment at the Large Hadron Collider at CERN, Geneva.">ATLAS Experiment</span></a></li>
+                            <li><a href="http://atlas-vp1.web.cern.ch/atlas-vp1/home/" target="_blank"><span title="The ATLAS 3D event display VP1 shows images of particle collisions inside the ATLAS detector.">ATLAS Event Display VP1</span></a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="6u">
+                <h2>About the author</h2>
+                <p>My name is Sebastian Merkt and I am currently a Data Engineering Fellow at Insight Data Science. Previously, I did my PhD in physics at the University of Pittsburgh where I worked as a member of the ATLAS collaboration at CERN.</p>
+                <ul class="icons">
+                    <!-- <li><a href="#" class="icon fa-twitter"><span class="label">Twitter</span></a></li>
+                    <li><a href="#" class="icon fa-facebook"><span class="label">Facebook</span></a></li>
+                    <li><a href="#" class="icon fa-instagram"><span class="label">Instagram</span></a></li>
+                    <li><a href="#" class="icon fa-linkedin"><span class="label">LinkedIn</span></a></li> -->
+                    <li><a href="https://github.com/sebmerkt" target="_blank" class="icon fa-github"><span class="label">Github</span></a></li>
+                    <li><a href="https://www.kaggle.com/samiamami" target="_blank" class="fab fa-kaggle"></a></li>
+                    <li><a href="https://www.linkedin.com/in/sebastian-merkt" target="_blank" class="fab fa-linkedin"></a></li>
+                </ul>
+            </div>
+        </div>
+        <ul class="copyright">
+            <li>&copy; Sebastian Merkt. All rights reserved.</li>
+            <li>Design: <a href="http://templated.co">TEMPLATED</a></li>
+            <!-- <li>Images: <a href="http://unsplash.com">Unsplash</a></li> -->
+            <li>Jekyll Template: <a href="http://cloudcannon.com">Cloud Cannon</a></li>
+        </ul>
+    </div>
+</footer>
+
+
+    </body>
+
+</html>
