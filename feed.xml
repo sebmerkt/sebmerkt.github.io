@@ -6,9 +6,284 @@
 </description>
     <link>http://sebmerkt.github.io/</link>
     <atom:link href="http://sebmerkt.github.io/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Wed, 01 Apr 2020 17:48:46 -0400</pubDate>
-    <lastBuildDate>Wed, 01 Apr 2020 17:48:46 -0400</lastBuildDate>
-    <generator>Jekyll v3.8.3</generator>
+    <pubDate>Wed, 10 Jun 2020 18:59:29 -0400</pubDate>
+    <lastBuildDate>Wed, 10 Jun 2020 18:59:29 -0400</lastBuildDate>
+    <generator>Jekyll v3.8.6</generator>
+    
+      <item>
+        <title>[TUTORIAL] Orchestrating an AWS EC2 cluster with Apache Airflow as a Systemd service</title>
+        <description>&lt;p&gt;&lt;a class=&quot;image seventyfive&quot;&gt;&lt;img src=&quot;/images/airflow_logo.png&quot; width=&quot;fit image&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;The goal of this tutorial is to run Apache Airflow on a single EC2 instance as a Systemd service and execute tasks on other EC2 instances in the cluster by using Airflow’s SSH operator. Running Airflow as a Systemd service requires some configuration, but it has many advantages over manually starting Airflow processes. In case one of the Airflow services fails or the machine unexpectedly reboots, the Airflow services are automatically restarted without any user interference providing more fault tolerance to the pipeline.&lt;/p&gt;
+
+&lt;p&gt;To start, we need at least two EC2 instances, one to host Airflow and a MySQL database that serves as the backend and one to test the SSH operator. Ideally, the database is located on a separate server, but for the sake of simplicity we install it on the same instance as Airflow. I will not go into details on how to launch the EC2 instances, since there are already many resources available, e.g. &lt;a href=&quot;https://blog.insightdatascience.com/create-a-cluster-of-instances-on-aws-899a9dc5e4d0&quot;&gt;this blog post&lt;/a&gt; on how to create a cluster of instances on AWS. The instance type we are using here is a t2.medium for the Airflow instance. This is the smallest instance type recommended for this setup. We are not going to do any work on the second EC2, therefore a t2.micro will be enough. For this article we will call the this second machine &lt;em&gt;webserver&lt;/em&gt;. The operating system used in both cases is Ubuntu 18.04.&lt;/p&gt;
+
+&lt;p&gt;The first thing we need to do is add a new user for the Airflow processes. All Airflow processes will run under this user. This will be especially useful if more than one developer interacts with the server.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;useradd airflow
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h1 id=&quot;install-mysql-server&quot;&gt;Install MySQL server&lt;/h1&gt;
+
+&lt;p&gt;In the next part we set up the MySQL server to host the Airflow database. In order to use MySQL as a backend for Airflow we also need the mysqlclient library.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;apt-get &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;mysql-server default-libmysqlclient-dev
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Once the MySQL server is installed, we can log in and create the necessary user and database. To login as root execute:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;mysql &lt;span class=&quot;nt&quot;&gt;-u&lt;/span&gt; root
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Once we are logged in we can create the Airflow database, as shown in the first line below. In the second and third line we create the Airflow user and grant this user access to the Airflow database. In the last line the new Airflow user’s privileges are saved.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-mysql&quot;&gt;mysql&amp;gt; CREATE DATABASE airflow CHARACTER SET utf8 COLLATE utf8_unicode_ci; 
+mysql&amp;gt; CREATE USER 'airflow'@'localhost' IDENTIFIED BY 'airflow';
+mysql&amp;gt; GRANT ALL PRIVILEGES ON airflow.* TO 'airflow'@'localhost'; 
+mysql&amp;gt; FLUSH PRIVILEGES;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id=&quot;install-airflow&quot;&gt;Install Airflow&lt;/h1&gt;
+
+&lt;p&gt;Before we install Airflow, we first need to install all its dependencies. Airflow is written in Python, so we need to install Python 3 from the Ubuntu repositories by executing:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;apt-get &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;python3-dev python3-pip
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;Another Python package that was missing during my installation was &lt;code class=&quot;highlighter-rouge&quot;&gt;typing_extensions&lt;/code&gt;. We can install it through pip as:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;pip3 &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;typing_extensions
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;When installing Airflow, you have the option of installing additional packages. For our setup we also want to install the SSH hooks and operators as well as support for MySQL backend. A complete list of extra packages can be found in the Airflow &lt;a href=&quot;https://airflow.apache.org/docs/stable/installation.html#extra-packages&quot;&gt;documentation&lt;/a&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;pip3 &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;apache-airflow[ssh,mysql]
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;h1 id=&quot;prepare-airflow-directories&quot;&gt;Prepare Airflow directories&lt;/h1&gt;
+
+&lt;p&gt;By default, Airflow home will be set to the user’s home directory. We want change this in order for all users to have access to the Airflow directory. We are going to install everything in the system’s &lt;code class=&quot;highlighter-rouge&quot;&gt;/opt&lt;/code&gt; directory. This can be achieved by creating the directory &lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/airflow&lt;/code&gt; and pointing the environment variable &lt;code class=&quot;highlighter-rouge&quot;&gt;AIRFLOW_HOME&lt;/code&gt; to that directory.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo mkdir&lt;/span&gt; /opt/airflow
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;export &lt;/span&gt;&lt;span class=&quot;nv&quot;&gt;AIRFLOW_HOME&lt;/span&gt;&lt;span class=&quot;o&quot;&gt;=&lt;/span&gt;/opt/airflow
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Now we can initiate the Airflow database by executing:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nb&quot;&gt;sudo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-E&lt;/span&gt; airflow initdb
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;p&gt;We use the &lt;code class=&quot;highlighter-rouge&quot;&gt;-E&lt;/code&gt; flag to preserve the environment variable for the Airflow &lt;code class=&quot;highlighter-rouge&quot;&gt;AIRFLOW_HOME&lt;/code&gt; directory we just set. This will initialize the Airflow database in a SQLite database. To change the backend to the MySQL database we edit the Airflow configuration file in &lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/airflow/airflow.cfg&lt;/code&gt; and set&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;sql_alchemy_conn = mysql://airflow:airflow@localhost:3306/airflow
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;This connection string tells Airflow to use the MySQL database &lt;code class=&quot;highlighter-rouge&quot;&gt;airflow&lt;/code&gt; on the current machine with user &lt;code class=&quot;highlighter-rouge&quot;&gt;airflow&lt;/code&gt; and password &lt;code class=&quot;highlighter-rouge&quot;&gt;airflow&lt;/code&gt;. In order to use MySQL as a backend there is one more configuration that needs to be adjusted according the Airflow &lt;a href=&quot;https://airflow.apache.org/docs/stable/howto/initialize-database.html&quot;&gt;documentation&lt;/a&gt;. Edit the file &lt;code class=&quot;highlighter-rouge&quot;&gt;/etc/mysql/conf.d/mysql.cnf&lt;/code&gt; and add&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;[mysqld]
+explicit_defaults_for_timestamp=1
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Now, restart the MySQL server for the changes to take effect by executing:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;systemctl restart mysql.service
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Once the backend is switched to MySQL, the Airflow database needs to be re-initiated to reload the new configuration settings.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo&lt;/span&gt; &lt;span class=&quot;nt&quot;&gt;-E&lt;/span&gt; airflow initdb
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo chown &lt;/span&gt;airflow:airflow /opt/airflow &lt;span class=&quot;nt&quot;&gt;-R&lt;/span&gt;
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo chmod &lt;/span&gt;775 /opt/airflow &lt;span class=&quot;nt&quot;&gt;-R&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We are also changing ownership of that directory to Airflow, the new user we created in the beginning. Since all users should be able to access this directory we also adjust the permissions of the directory. This allows users e.g. to create and edit DAGs that are stored here.&lt;/p&gt;
+
+&lt;h1 id=&quot;set-up-systemd-services&quot;&gt;Set-up Systemd services&lt;/h1&gt;
+
+&lt;p&gt;In the following we go over the details on how to run Airflow as a Systemd service. The Airflow Github repository provides template files that can be used to setup the services. We can download and save these files in a temporary directory.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;wget https://raw.githubusercontent.com/apache/airflow/master/scripts/systemd/airflow
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;wget https://raw.githubusercontent.com/apache/airflow/master/scripts/systemd/airflow.conf
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;wget https://raw.githubusercontent.com/apache/airflow/master/scripts/systemd/airflow-webserver.service
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;wget https://raw.githubusercontent.com/apache/airflow/master/scripts/systemd/airflow-scheduler.service
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;There are other &lt;code class=&quot;highlighter-rouge&quot;&gt;*.service&lt;/code&gt; files in the Github repository which we will not be using here. Before we adjust the files we need to make sure that we know the correct path to the Airflow binaries. Check the path by typing:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;which airflow
+/usr/local/bin/airflow
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;For most users Airflow will be installed in the default location in &lt;code class=&quot;highlighter-rouge&quot;&gt;/usr/local/bin&lt;/code&gt;. Now we can adjust the configuration files one by one. We start with the file called &lt;code class=&quot;highlighter-rouge&quot;&gt;airflow&lt;/code&gt;. This file sets up the environment for Airflow such as the &lt;code class=&quot;highlighter-rouge&quot;&gt;AIRFLOW_HOME&lt;/code&gt; path. Add the following lines to the end of the file.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;AIRFLOW_CONFIG=/opt/airflow/airflow.cfg
+AIRFLOW_HOME=/opt/airflow
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Next, we adjust the &lt;code class=&quot;highlighter-rouge&quot;&gt;*.service&lt;/code&gt; files. These files define the Systemd services to be run. In each file, edit the setting &lt;code class=&quot;highlighter-rouge&quot;&gt;ExecStart&lt;/code&gt; to point to the correct Airflow path that we found earlier. If Airflow is located in a different place, adjust the path according to the output of &lt;code class=&quot;highlighter-rouge&quot;&gt;which airflow&lt;/code&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;ExecStart=/usr/local/bin/airflow webserver --pid /run/airflow/webserver.pid
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;This line needs to be modified in all &lt;code class=&quot;highlighter-rouge&quot;&gt;*.service&lt;/code&gt; files. These are all the adjustments we need. We can now move the files to their proper locations.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo cp&lt;/span&gt; &lt;span class=&quot;k&quot;&gt;*&lt;/span&gt;.service /usr/lib/systemd/system/ 
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo cp &lt;/span&gt;airflow.conf /usr/lib/tmpfiles.d/
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo cp &lt;/span&gt;airflow /etc/sysconfig/
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;If one of these directories does not exist you can create them. In my case I had to create the directory&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo mkdir&lt;/span&gt; /etc/sysconfig
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;before moving the &lt;code class=&quot;highlighter-rouge&quot;&gt;airflow&lt;/code&gt; file. Each Systemd service stores the process Id in the &lt;code class=&quot;highlighter-rouge&quot;&gt;/run&lt;/code&gt; directory, so that the process can be terminated when necessary. In order for Airflow to work properly we need to create the corresponding folder and give it the necessary permissions.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo mkdir&lt;/span&gt; /run/airflow
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo chown &lt;/span&gt;airflow:airflow /run/airflow
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo chmod &lt;/span&gt;755 /run/airflow &lt;span class=&quot;nt&quot;&gt;-R&lt;/span&gt;
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Now, all the files are in the correct location and we can enable the Airflow services.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;systemctl &lt;span class=&quot;nb&quot;&gt;enable &lt;/span&gt;airflow-scheduler.service
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;systemctl &lt;span class=&quot;nb&quot;&gt;enable &lt;/span&gt;airflow-webserver.service
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;This will enable the scheduler and web-server services and make sure that they start every time the system starts or restart after failure. To start the services execute:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;systemctl start airflow-scheduler.service
+&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;systemctl start airflow-webserver.service
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;The Airflow scheduler and webserver are now running. We can check if the the web service is working by opening the web interface in a browser.&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;http://&amp;lt;EC2-public-IP&amp;gt;:8080
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;code class=&quot;highlighter-rouge&quot;&gt;&amp;lt;EC2-public-IP&amp;gt;&lt;/code&gt; is the public IP address of the EC2 instance. Make sure that the AWS security group associated with the EC2 instance allows HTTP connections.&lt;/p&gt;
+
+&lt;h1 id=&quot;create-a-ssh-connection&quot;&gt;Create a SSH connection&lt;/h1&gt;
+
+&lt;p&gt;Before we create the SSH connection we need to make sure that Airflow has permission to ssh into the &lt;em&gt;webserver&lt;/em&gt;. This can be done by creating a SSH key and storing that key in the &lt;code class=&quot;highlighter-rouge&quot;&gt;authorized_keys&lt;/code&gt; file on the &lt;em&gt;webserver&lt;/em&gt;. On the Airflow server execute:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;ssh-keygen &lt;span class=&quot;nt&quot;&gt;-t&lt;/span&gt; ed25519
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;and add the content of &lt;code class=&quot;highlighter-rouge&quot;&gt;~/.ssh/id_ed25519.pub&lt;/code&gt; to the file &lt;code class=&quot;highlighter-rouge&quot;&gt;~/.ssh/authorized_keys&lt;/code&gt; on the &lt;em&gt;webserver&lt;/em&gt;. To test our setup we will create a simple DAG using a SSH operator. The DAG will have one task that checks the existence of a file and if not present creates it and writes some text into the file. In order to use the SSH operator we create a new connection in the Airflow web interface. Under &lt;code class=&quot;highlighter-rouge&quot;&gt;Admin -&amp;gt; Connections&lt;/code&gt; we create a new connection with Id &lt;code class=&quot;highlighter-rouge&quot;&gt;ssh_webserver&lt;/code&gt;. We adjust the connection details such that Airflow can ssh into the &lt;em&gt;webserver&lt;/em&gt;. Therefore, the &lt;code class=&quot;highlighter-rouge&quot;&gt;Host&lt;/code&gt; field needs to be the internal IP or DNS of the &lt;em&gt;webserver&lt;/em&gt;. The username is that of the &lt;em&gt;webserver&lt;/em&gt; user. To get the correct user type&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;whoami
+&lt;/span&gt;ubuntu
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;We also provide an extra option &lt;code class=&quot;highlighter-rouge&quot;&gt;key_file&lt;/code&gt; that points to a file called &lt;code class=&quot;highlighter-rouge&quot;&gt;key_file&lt;/code&gt;. This file holds the private SSH key of the Airflow EC2 instance. To create the file we can use the SSH key generated earlier and save the private key to &lt;code class=&quot;highlighter-rouge&quot;&gt;key_file&lt;/code&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;cat&lt;/span&gt; ~/.ssh/id_ed25519 &lt;span class=&quot;o&quot;&gt;&amp;gt;&lt;/span&gt; /home/&lt;span class=&quot;nv&quot;&gt;$USER&lt;/span&gt;/key_file
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;a class=&quot;image seventyfive&quot;&gt;&lt;img src=&quot;/images/airflow_connection.png&quot; width=&quot;fit image&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;h1 id=&quot;create-the-dag&quot;&gt;Create the DAG&lt;/h1&gt;
+
+&lt;p&gt;We create a new DAG &lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/airflow/dags/airflow_ssh_test.py&lt;/code&gt; in the default DAG directory set in the Airflow configuration file &lt;code class=&quot;highlighter-rouge&quot;&gt;/opt/airflow/airflow.cfg&lt;/code&gt;. The content of &lt;code class=&quot;highlighter-rouge&quot;&gt;airflow_ssh_test.py&lt;/code&gt; is:&lt;/p&gt;
+
+&lt;div class=&quot;highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;from airflow import DAG
+from airflow.contrib.operators.ssh_operator import SSHOperator
+from airflow.utils.dates import days_ago
+
+args = {
+    'owner': 'airflow',
+    'start_date': days_ago(1),
+}
+
+dag = DAG(
+    dag_id='airflow_ssh_test',
+    default_args=args,
+    schedule_interval=None,
+)
+
+command='''
+FILE=/home/ubuntu/airfile.txt
+if [ ! -f &quot;$FILE&quot; ]; then
+    echo &quot;Hello from Airflow!&quot; &amp;gt; $FILE
+fi
+'''
+
+task= SSHOperator(
+    task_id='Say_hello',
+    ssh_conn_id='ssh_webserver',
+    command=command,
+    dag=dag)
+
+if __name__ == &quot;__main__&quot;:
+    dag.cli()
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Here I want to point out two arguments of the SSH operator. The first is the &lt;code class=&quot;highlighter-rouge&quot;&gt;ssh_conn_id&lt;/code&gt; which is the Id of the connection we created in the previous section. The second is the &lt;code class=&quot;highlighter-rouge&quot;&gt;command&lt;/code&gt; argument. This is the ssh command we want to execute on the &lt;em&gt;webserver&lt;/em&gt;. In our case it consists of a small script that checks if the file &lt;code class=&quot;highlighter-rouge&quot;&gt;airfile.txt&lt;/code&gt; exists and if not creates the file with content “Hello from Airflow!”. This helps us to see if the task completes successfully.&lt;/p&gt;
+
+&lt;h1 id=&quot;run-the-dag&quot;&gt;Run the DAG&lt;/h1&gt;
+
+&lt;p&gt;We can trigger the DAG using the Airflow web interface. Switch on the DAG and trigger a run as indicated in the screenshot below. Once triggered, you can follow the status of the DAG in the overview. After the DAG’s task has successfully completed, a dark green circle will appear in the Recent Tasks section on the left side. The light green circle seen in the screenshot indicates the task is running.&lt;/p&gt;
+
+&lt;p&gt;&lt;a class=&quot;image seventyfive&quot;&gt;&lt;img src=&quot;/images/airflow_dags.png&quot; width=&quot;fit image&quot; /&gt;&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;Be sure to check the &lt;em&gt;webserver&lt;/em&gt; to see if the &lt;code class=&quot;highlighter-rouge&quot;&gt;airfile.txt&lt;/code&gt; file was successfully created.&lt;/p&gt;
+
+&lt;h1 id=&quot;check-the-airflow-database&quot;&gt;Check the Airflow database&lt;/h1&gt;
+
+&lt;p&gt;To check if the Airflow settings are correctly stored in the MySQL database we can check if the new SSH connection we created is correctly stored. Log into the database by executing:&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;mysql &lt;span class=&quot;nt&quot;&gt;-u&lt;/span&gt; root
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;Query the Airflow connections table to check for the &lt;code class=&quot;highlighter-rouge&quot;&gt;ssh_webserver&lt;/code&gt; entry:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-mysql&quot;&gt;mysql&amp;gt; SELECT id, conn_id, conn_type, host FROM airflow.connection WHERE conn_id = 'ssh_webserver';
++----+---------------+-----------+-----------------------------------------+
+| id | conn_id       | conn_type | host                                    |
++----+---------------+-----------+-----------------------------------------+
+| 39 | ssh_webserver | ssh       | ip-10-0-0-10.us-west-2.compute.internal |
++----+---------------+-----------+-----------------------------------------+
+1 row in set (0.00 sec)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Alternatively, check if the DAG we just ran is correctly logged in the database.&lt;/p&gt;
+
+&lt;h1 id=&quot;what-if-i-dont-have-access-to-aws&quot;&gt;What if I don’t have access to AWS?&lt;/h1&gt;
+
+&lt;p&gt;Most of this tutorial describes how to set up Airflow and the MySQL database on a single EC2 instance. Following the same steps Airflow can also be installed on a single computer or laptop. However, some of the Systemd configurations might change when using a different Linux flavor. Changing the SSH operator in Airflow to a regular Bash operator allows you to try this on a single machine.&lt;/p&gt;
+
+&lt;p&gt;I have successfully installed Airflow on a Raspberry Pi 4 cluster using the same steps, with one small addition. To install NumPy, which is a dependency of Airflow, you need to install &lt;code class=&quot;highlighter-rouge&quot;&gt;libatlas-base-dev&lt;/code&gt; first, as mentioned &lt;a href=&quot;https://numpy.org/devdocs/user/troubleshooting-importerror.html&quot;&gt;here&lt;/a&gt;.&lt;/p&gt;
+
+&lt;div class=&quot;language-bash highlighter-rouge&quot;&gt;&lt;div class=&quot;highlight&quot;&gt;&lt;pre class=&quot;highlight&quot;&gt;&lt;code&gt;&lt;span class=&quot;nv&quot;&gt;$ &lt;/span&gt;&lt;span class=&quot;nb&quot;&gt;sudo &lt;/span&gt;apt-get &lt;span class=&quot;nb&quot;&gt;install &lt;/span&gt;libatlas-base-dev
+&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;&lt;/div&gt;
+
+&lt;div id=&quot;disqus_thread&quot;&gt;&lt;/div&gt;
+&lt;script&gt;
+
+/**
+*  RECOMMENDED CONFIGURATION VARIABLES: EDIT AND UNCOMMENT THE SECTION BELOW TO INSERT DYNAMIC VALUES FROM YOUR PLATFORM OR CMS.
+*  LEARN WHY DEFINING THESE VARIABLES IS IMPORTANT: https://disqus.com/admin/universalcode/#configuration-variables*/
+/*
+var disqus_config = function () {
+this.page.url = /2020/05/25/Airflow_on_Pi.html;  // Replace PAGE_URL with your page's canonical URL variable
+this.page.identifier = /2020/05/25/Airflow_on_Pi; // Replace PAGE_IDENTIFIER with your page's unique identifier variable
+};
+*/
+(function() { // DON'T EDIT BELOW THIS LINE
+var d = document, s = d.createElement('script');
+s.src = 'https://sebmerkt.disqus.com/embed.js';
+s.setAttribute('data-timestamp', +new Date());
+(d.head || d.body).appendChild(s);
+})();
+&lt;/script&gt;
+
+&lt;noscript&gt;Please enable JavaScript to view the &lt;a href=&quot;https://disqus.com/?ref_noscript&quot;&gt;comments powered by Disqus.&lt;/a&gt;&lt;/noscript&gt;
+</description>
+        <pubDate>Mon, 25 May 2020 00:00:00 -0400</pubDate>
+        <link>http://sebmerkt.github.io/2020/05/25/Airflow_on_Pi.html</link>
+        <guid isPermaLink="true">http://sebmerkt.github.io/2020/05/25/Airflow_on_Pi.html</guid>
+        
+        
+      </item>
     
       <item>
         <title>Ride-Share-Compare - Your Ride On Your Terms</title>
